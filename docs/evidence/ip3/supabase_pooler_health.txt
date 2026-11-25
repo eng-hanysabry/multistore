@@ -1,0 +1,13 @@
+## Built API on the Supabase transaction pooler as multistore_app (25 Nov 2026, run from a sandbox outside Render)
+$ curl -i /health/ready (call 1)
+HTTP/1.1 200 OK
+{"status":"ready","database":"up","rlsCanary":"ok","mail":{"status":"DEGRADED","reason":"not_configured"},"version":"dev"}
+$ curl -i /health/ready (call 2)
+HTTP/1.1 200 OK
+{"status":"ready","database":"up","rlsCanary":"ok","mail":{"status":"DEGRADED","reason":"not_configured"},"version":"dev"}
+$ curl -i /health/ready (call 3)
+HTTP/1.1 200 OK
+{"status":"ready","database":"up","rlsCanary":"ok","mail":{"status":"DEGRADED","reason":"not_configured"},"version":"dev"}
+## Outbox through the pooler (enqueue, claim, markSent), as multistore_app
+claimed 1 attempts 1
+status SENT body_kept false

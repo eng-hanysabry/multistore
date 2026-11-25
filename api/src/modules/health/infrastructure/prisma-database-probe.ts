@@ -8,11 +8,7 @@ export class PrismaDatabaseProbe implements DatabaseProbe {
 
   async readiness(): Promise<DatabaseReadiness> {
     try {
-      await this.db.$queryRaw`SELECT 1`;
-    } catch {
-      return { databaseOk: false, rlsCanaryOk: false };
-    }
-    try {
+      // One transaction proves both the connection and the RLS context (fewest round trips).
       const rlsCanaryOk = await this.db.$transaction(
         async (tx) => {
           // Pooled connections may hold an empty string from an earlier transaction: this first
@@ -30,7 +26,13 @@ export class PrismaDatabaseProbe implements DatabaseProbe {
       );
       return { databaseOk: true, rlsCanaryOk };
     } catch {
-      return { databaseOk: true, rlsCanaryOk: false };
+      // The transaction failed: either the database is down or the canary is broken. Tell them apart.
+      try {
+        await this.db.$queryRaw`SELECT 1`;
+        return { databaseOk: true, rlsCanaryOk: false };
+      } catch {
+        return { databaseOk: false, rlsCanaryOk: false };
+      }
     }
   }
 
