@@ -8,8 +8,14 @@
 | typescript, ts-node, @types/node | build and run scripts | tooling |
 | eslint, typescript-eslint, eslint-plugin-boundaries, prettier | lint, import boundaries, format (8.5, 5.3) | listed (eslint, prettier); boundaries named in 5.3 |
 | jest, ts-jest, @types/jest | test runner (8.1) | listed |
-| **pg, @types/pg (dev only)** | RLS harness client for real PostgreSQL. **Not in the spec 13 list; needs your approval.** Prisma 7 also needs a pg driver adapter in IP-4. | NOT listed |
-Not yet added (later phases): prisma, @prisma/client, @nestjs/jwt, passport, throttler, argon2, googleapis, sharp, supertest, husky.
+| pg, @types/pg (dev only) | RLS harness client for real PostgreSQL (Jest tests only, never in the runtime build) | **Approved by you, 25 Nov 2026 (Telegram 16993295), as devDependencies only** |
+| helmet | secure HTTP headers (D1, option A) | listed after D1 approval |
+| prisma, @prisma/client (**6.19.3**) | runtime database access and the email outbox store. Pinned to 6.x on purpose: Prisma 7 and later need a driver adapter that pulls `pg` into the runtime, which you approved for tests only | listed |
+| googleapis | Gmail API sender (`gmail_v1` only, imported from `googleapis/build/src/apis/gmail/v1` so the type checker does not load all 400 Google APIs). `google-auth-library` is imported directly: it is a transitive dependency of googleapis | listed |
+| supertest, @types/supertest (dev) | HTTP tests for the health endpoints and headers | listed |
+Not yet added (later phases): @nestjs/jwt, passport, throttler, argon2, sharp, husky.
+
+**Runtime:** Node 24 (`.nvmrc`, `engines`). Nest 12 ships ESM only. Jest runs with `--experimental-vm-modules`, which needs Node 24; Render uses `NODE_VERSION=24`. This is not in spec 13.
 ## App (`app/pubspec.yaml`)
 | Package | Reason | Spec 13 |
 |---|---|---|

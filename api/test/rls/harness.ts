@@ -122,3 +122,24 @@ export async function run<T>(
 }
 
 export { id as seedId };
+
+/** Applies a SQL migration from prisma/migrations as multistore_owner, as the deploy step does. */
+export async function applyMigration(dir: string): Promise<void> {
+  const owner = poolAs('multistore_owner');
+  try {
+    await owner.query(
+      readFileSync(
+        join(__dirname, '..', '..', 'prisma', 'migrations', dir, 'migration.sql'),
+        'utf8',
+      ),
+    );
+  } finally {
+    await owner.end();
+  }
+}
+
+/** Connection string for Prisma as multistore_app over the local socket. */
+export function appDatabaseUrl(): string {
+  const host = process.env['PGHOST'] ?? '/tmp/pgdata';
+  return `postgresql://multistore_app:${ROLE_PW}@localhost:${process.env['PGPORT'] ?? 5432}/${process.env['PGDATABASE'] ?? 'postgres'}?host=${encodeURIComponent(host)}&connection_limit=1`;
+}

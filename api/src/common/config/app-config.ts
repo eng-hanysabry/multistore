@@ -14,6 +14,16 @@ export interface AppConfig {
   readonly databaseUrl: string;
   readonly adminDatabaseUrl: string | undefined;
   readonly jwtSecret: string;
+  /** Present only when every Gmail variable is set. Without it mail reports DEGRADED (not_configured). */
+  readonly gmail: GmailConfig | undefined;
+}
+
+export interface GmailConfig {
+  readonly clientId: string;
+  readonly clientSecret: string;
+  readonly refreshToken: string;
+  /** GMAIL_ALLOWED_ACCOUNT (9.1.1): also the From address. */
+  readonly account: string;
 }
 
 export const REQUIRED_APP_ROLE = 'multistore_app';
@@ -68,6 +78,28 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
   if (!jwt || jwt.length < 32)
     problems.push('JWT_SECRET is required and must be at least 32 characters');
 
+  const gmailVars = [
+    'GMAIL_CLIENT_ID',
+    'GMAIL_CLIENT_SECRET',
+    'GMAIL_REFRESH_TOKEN',
+    'GMAIL_ALLOWED_ACCOUNT',
+  ];
+  const setVars = gmailVars.filter((k) => Boolean(env[k]));
+  let gmail: GmailConfig | undefined;
+  if (setVars.length > 0 && setVars.length < gmailVars.length) {
+    problems.push(`Gmail settings are all-or-none: set all of ${gmailVars.join(', ')}`);
+  } else if (setVars.length === gmailVars.length) {
+    const account = (env['GMAIL_ALLOWED_ACCOUNT'] as string).trim();
+    if (!/^[^\s@]+@[^\s@]+$/.test(account))
+      problems.push('GMAIL_ALLOWED_ACCOUNT must be an email address');
+    gmail = {
+      clientId: env['GMAIL_CLIENT_ID'] as string,
+      clientSecret: env['GMAIL_CLIENT_SECRET'] as string,
+      refreshToken: env['GMAIL_REFRESH_TOKEN'] as string,
+      account,
+    };
+  }
+
   if (problems.length > 0) throw new ConfigError(problems);
   return {
     nodeEnv: nodeEnv as AppConfig['nodeEnv'],
@@ -75,6 +107,7 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     databaseUrl: env['DATABASE_URL'] as string,
     adminDatabaseUrl: adminRaw || undefined,
     jwtSecret: jwt as string,
+    gmail,
   };
 }
 
@@ -86,5 +119,7 @@ export function describeConfig(cfg: AppConfig): Record<string, unknown> {
     databaseUrl: safeDatabaseUrl(cfg.databaseUrl),
     adminDatabaseUrl: cfg.adminDatabaseUrl ? safeDatabaseUrl(cfg.adminDatabaseUrl) : undefined,
     jwtSecret: cfg.jwtSecret,
+    gmailConfigured: cfg.gmail !== undefined,
+    gmailAccount: cfg.gmail ? '[set]' : undefined,
   }) as Record<string, unknown>;
 }

@@ -1,0 +1,32 @@
+# Render Free web service for the API (spec 10.6, 10.7). No card, no paid add-ons.
+# Secrets (sync: false) are set in the Render dashboard or API, never in this file.
+services:
+  - type: web
+    name: multistore-api
+    runtime: node
+    plan: free
+    region: frankfurt # same region as the Supabase project (eu-central-1)
+    rootDir: api
+    buildFilter:
+      paths:
+        - api/**
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: node dist/main.js
+    healthCheckPath: /health/live # liveness only; a dependency outage must not restart the process (10.7)
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL # multistore_app via the Supabase transaction pooler (6.3)
+        sync: false
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false
+      - key: GMAIL_ALLOWED_ACCOUNT
+        sync: false
