@@ -1,0 +1,372 @@
+﻿2026-11-25T15:19:10.1775877Z Current runner version: '2.338.2'
+2026-11-25T15:19:10.1799739Z ##[group]Runner Image Provisioner
+2026-11-25T15:19:10.1800696Z Hosted Compute Agent
+2026-11-25T15:19:10.1801317Z Version: 20261111.635
+2026-11-25T15:19:10.1801931Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+2026-11-25T15:19:10.1802675Z Build Date: 2026-11-11T01:49:01Z
+2026-11-25T15:19:10.1803298Z Worker ID: {f6802e37-3538-4620-86b4-8c53d343e84a}
+2026-11-25T15:19:10.1803959Z Region: westus3
+2026-11-25T15:19:10.1804514Z Cloud: Azure
+2026-11-25T15:19:10.1805013Z ##[endgroup]
+2026-11-25T15:19:10.1806257Z ##[group]Operating System
+2026-11-25T15:19:10.1807342Z Ubuntu
+2026-11-25T15:19:10.1808191Z 26.04.1
+2026-11-25T15:19:10.1808775Z LTS
+2026-11-25T15:19:10.1809292Z ##[endgroup]
+2026-11-25T15:19:10.1809830Z ##[group]Runner Image
+2026-11-25T15:19:10.1810391Z Image: ubuntu-26.04
+2026-11-25T15:19:10.1810900Z Version: 20261116.202.1
+2026-11-25T15:19:10.1812150Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261116.202/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-25T15:19:10.1813565Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261116.202
+2026-11-25T15:19:10.1814460Z ##[endgroup]
+2026-11-25T15:19:10.1815488Z ##[group]GITHUB_TOKEN Permissions
+2026-11-25T15:19:10.1818018Z Contents: read
+2026-11-25T15:19:10.1818552Z Metadata: read
+2026-11-25T15:19:10.1819161Z ##[endgroup]
+2026-11-25T15:19:10.1821366Z Secret source: Actions
+2026-11-25T15:19:10.1822329Z Cache mode: write
+2026-11-25T15:19:10.1823216Z Prepare workflow directory
+2026-11-25T15:19:10.2245835Z Prepare all required actions
+2026-11-25T15:19:10.2296614Z Getting action download info
+2026-11-25T15:19:10.5552906Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-25T15:19:10.6606787Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-11-25T15:19:10.8245207Z Complete job name: api
+2026-11-25T15:19:10.8810200Z ##[group]Checking docker version
+2026-11-25T15:19:10.8822620Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-11-25T15:19:11.0041226Z '1.54'
+2026-11-25T15:19:11.0050679Z Docker daemon API version: '1.54'
+2026-11-25T15:19:11.0051547Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-11-25T15:19:11.0229665Z '1.54'
+2026-11-25T15:19:11.0242875Z Docker client API version: '1.54'
+2026-11-25T15:19:11.0249555Z ##[endgroup]
+2026-11-25T15:19:11.0251946Z ##[group]Clean up resources from previous jobs
+2026-11-25T15:19:11.0257486Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=662052"
+2026-11-25T15:19:11.0419271Z ##[command]/usr/bin/docker network prune --force --filter "label=662052"
+2026-11-25T15:19:11.0587688Z ##[endgroup]
+2026-11-25T15:19:11.0588364Z ##[group]Create local container network
+2026-11-25T15:19:11.0597818Z ##[command]/usr/bin/docker network create --label 662052 github_network_6e4783f625c54741a59d5d366d8e56a6
+2026-11-25T15:19:11.1002641Z 60403668cbd7f7176df905eba18b9086803f635c5d3fe2ccfcd727b8aa0eee8e
+2026-11-25T15:19:11.1018556Z ##[endgroup]
+2026-11-25T15:19:11.1044364Z ##[group]Starting postgres service container
+2026-11-25T15:19:11.1067344Z ##[command]/usr/bin/docker pull postgres:16
+2026-11-25T15:19:11.8345431Z 16: Pulling from library/postgres
+2026-11-25T15:19:12.0433688Z e91b6b814ba6: Pulling fs layer
+2026-11-25T15:19:12.0435890Z cfa3776983f1: Pulling fs layer
+2026-11-25T15:19:12.0437608Z 9be9d0609035: Pulling fs layer
+2026-11-25T15:19:12.0439249Z cc2ed79b34db: Pulling fs layer
+2026-11-25T15:19:12.0440705Z 34ff39ac908b: Pulling fs layer
+2026-11-25T15:19:12.0442264Z 72bd85048465: Pulling fs layer
+2026-11-25T15:19:12.0444348Z 91d82016f303: Pulling fs layer
+2026-11-25T15:19:12.0445779Z 46e4f78fd254: Pulling fs layer
+2026-11-25T15:19:12.0447518Z 3b9319a24e33: Pulling fs layer
+2026-11-25T15:19:12.0448861Z 40748add9f4f: Pulling fs layer
+2026-11-25T15:19:12.0449953Z 1be8baae3c53: Pulling fs layer
+2026-11-25T15:19:12.0451376Z 111f378001d9: Pulling fs layer
+2026-11-25T15:19:12.0452833Z c362828e9ca3: Pulling fs layer
+2026-11-25T15:19:12.3246148Z 1be8baae3c53: Download complete
+2026-11-25T15:19:12.3247600Z 9be9d0609035: Download complete
+2026-11-25T15:19:12.3258696Z cfa3776983f1: Download complete
+2026-11-25T15:19:12.3289838Z cc2ed79b34db: Download complete
+2026-11-25T15:19:12.3301546Z 34ff39ac908b: Download complete
+2026-11-25T15:19:12.3304484Z c362828e9ca3: Download complete
+2026-11-25T15:19:12.3311770Z e91b6b814ba6: Download complete
+2026-11-25T15:19:12.3325626Z 46e4f78fd254: Download complete
+2026-11-25T15:19:12.3357267Z 72bd85048465: Download complete
+2026-11-25T15:19:12.3365090Z 91d82016f303: Download complete
+2026-11-25T15:19:12.4269525Z 111f378001d9: Download complete
+2026-11-25T15:19:12.6277339Z 7aa47411d7c7: Download complete
+2026-11-25T15:19:12.6289159Z 40748add9f4f: Download complete
+2026-11-25T15:19:12.7247622Z 636bc81cf18f: Download complete
+2026-11-25T15:19:13.3377844Z 40748add9f4f: Pull complete
+2026-11-25T15:19:13.5245076Z 3b9319a24e33: Download complete
+2026-11-25T15:19:13.5285855Z 1be8baae3c53: Pull complete
+2026-11-25T15:19:13.6300936Z e91b6b814ba6: Pull complete
+2026-11-25T15:19:13.7322234Z 46e4f78fd254: Pull complete
+2026-11-25T15:19:13.8303564Z c362828e9ca3: Pull complete
+2026-11-25T15:19:13.8337525Z 111f378001d9: Pull complete
+2026-11-25T15:19:13.9254160Z 9be9d0609035: Pull complete
+2026-11-25T15:19:13.9327832Z 72bd85048465: Pull complete
+2026-11-25T15:19:15.7250117Z cc2ed79b34db: Pull complete
+2026-11-25T15:19:15.7281008Z 34ff39ac908b: Pull complete
+2026-11-25T15:19:15.7302694Z 3b9319a24e33: Pull complete
+2026-11-25T15:19:15.7663584Z cfa3776983f1: Pull complete
+2026-11-25T15:19:15.7674754Z 91d82016f303: Pull complete
+2026-11-25T15:19:15.7677316Z Digest: sha256:07abc3f43c9395b0bdbbab36bc25ddb0e8d83cd4fcafb5fb7d6abe14ff156dd8
+2026-11-25T15:19:15.7678668Z Status: Downloaded newer image for postgres:16
+2026-11-25T15:19:15.7684096Z docker.io/library/postgres:16
+2026-11-25T15:19:15.7766153Z ##[command]/usr/bin/docker create --name d78a26850fc94b0fa133bfa98442aa9f_postgres16_8249ef --label 662052 --network github_network_6e4783f625c54741a59d5d366d8e56a6 --network-alias postgres -p 5432:5432 --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10 -e "POSTGRES_PASSWORD=postgres" -e GITHUB_ACTIONS=true -e CI=true postgres:16
+2026-11-25T15:19:19.2416747Z d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:19.2438366Z ##[command]/usr/bin/docker start d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:19.4768986Z d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:19.4785716Z ##[command]/usr/bin/docker ps --all --filter id=d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-11-25T15:19:19.5077077Z d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82 Up Less than a second (health: starting)
+2026-11-25T15:19:19.5098009Z ##[command]/usr/bin/docker port d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:19.5243483Z 5432/tcp -> 0.0.0.0:5432
+2026-11-25T15:19:19.5244007Z 5432/tcp -> [::]:5432
+2026-11-25T15:19:19.5288411Z ##[endgroup]
+2026-11-25T15:19:19.5297172Z ##[group]Waiting for all services to be ready
+2026-11-25T15:19:19.5310564Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:19.5468649Z starting
+2026-11-25T15:19:19.5478701Z postgres service is starting, waiting 2 seconds before checking again.
+2026-11-25T15:19:21.5489256Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:21.5638536Z starting
+2026-11-25T15:19:21.5662037Z postgres service is starting, waiting 4 seconds before checking again.
+2026-11-25T15:19:25.6905652Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:25.7048871Z healthy
+2026-11-25T15:19:25.7065005Z postgres service is healthy.
+2026-11-25T15:19:25.7065538Z ##[endgroup]
+2026-11-25T15:19:25.7344931Z ##[group]Run actions/checkout@v4
+2026-11-25T15:19:25.7345540Z with:
+2026-11-25T15:19:25.7345842Z   repository: eng-hanysabry/multistore
+2026-11-25T15:19:25.7348691Z   token: ***
+2026-11-25T15:19:25.7348980Z   ssh-strict: true
+2026-11-25T15:19:25.7349294Z   ssh-user: git
+2026-11-25T15:19:25.7349598Z   persist-credentials: true
+2026-11-25T15:19:25.7349929Z   clean: true
+2026-11-25T15:19:25.7350266Z   sparse-checkout-cone-mode: true
+2026-11-25T15:19:25.7350601Z   fetch-depth: 1
+2026-11-25T15:19:25.7350888Z   fetch-tags: false
+2026-11-25T15:19:25.7351191Z   show-progress: true
+2026-11-25T15:19:25.7351510Z   lfs: false
+2026-11-25T15:19:25.7352208Z   submodules: false
+2026-11-25T15:19:25.7352509Z   set-safe-directory: true
+2026-11-25T15:19:25.7352872Z   allow-unsafe-pr-checkout: false
+2026-11-25T15:19:25.7353431Z env:
+2026-11-25T15:19:25.7353735Z   PGHOST: localhost
+2026-11-25T15:19:25.7354046Z   PGPORT: 5432
+2026-11-25T15:19:25.7354326Z   PGUSER: postgres
+2026-11-25T15:19:25.7354753Z   PGPASSWORD: postgres
+2026-11-25T15:19:25.7355056Z   PGDATABASE: postgres
+2026-11-25T15:19:25.7355354Z ##[endgroup]
+2026-11-25T15:19:26.0518281Z Syncing repository: eng-hanysabry/multistore
+2026-11-25T15:19:26.0520127Z ##[group]Getting Git version info
+2026-11-25T15:19:26.0520626Z Working directory is '/home/runner/work/multistore/multistore'
+2026-11-25T15:19:26.0521707Z [command]/usr/bin/git version
+2026-11-25T15:19:26.0522222Z git version 2.56.1
+2026-11-25T15:19:26.0534834Z ##[endgroup]
+2026-11-25T15:19:26.0550062Z Temporarily overriding HOME='/home/runner/work/_temp/674ba465-a9c7-4d3f-bc9a-5c1639625037' before making global git config changes
+2026-11-25T15:19:26.0551321Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-25T15:19:26.0555781Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/multistore/multistore
+2026-11-25T15:19:26.0624878Z Deleting the contents of '/home/runner/work/multistore/multistore'
+2026-11-25T15:19:26.0629356Z ##[group]Initializing the repository
+2026-11-25T15:19:26.0633641Z [command]/usr/bin/git init /home/runner/work/multistore/multistore
+2026-11-25T15:19:26.0768012Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-25T15:19:26.0769568Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-25T15:19:26.0770427Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-25T15:19:26.0771107Z hint: call:
+2026-11-25T15:19:26.0771538Z hint:
+2026-11-25T15:19:26.0772081Z hint: 	git config --global init.defaultBranch <name>
+2026-11-25T15:19:26.0772670Z hint:
+2026-11-25T15:19:26.0773195Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-25T15:19:26.0774046Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-25T15:19:26.0774728Z hint:
+2026-11-25T15:19:26.0775136Z hint: 	git branch -m <name>
+2026-11-25T15:19:26.0775603Z hint:
+2026-11-25T15:19:26.0776176Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-25T15:19:26.0782364Z Initialized empty Git repository in /home/runner/work/multistore/multistore/.git/
+2026-11-25T15:19:26.0794574Z [command]/usr/bin/git remote add origin https://github.com/eng-hanysabry/multistore
+2026-11-25T15:19:26.0851793Z ##[endgroup]
+2026-11-25T15:19:26.0852775Z ##[group]Disabling automatic garbage collection
+2026-11-25T15:19:26.0857378Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-25T15:19:26.0891203Z ##[endgroup]
+2026-11-25T15:19:26.0892100Z ##[group]Setting up auth
+2026-11-25T15:19:26.0898240Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-25T15:19:26.0929535Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-25T15:19:26.1397410Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-25T15:19:26.1437071Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-25T15:19:26.1671050Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-25T15:19:26.1703587Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-25T15:19:26.1936562Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-25T15:19:26.1979577Z ##[endgroup]
+2026-11-25T15:19:26.1980823Z ##[group]Fetching the repository
+2026-11-25T15:19:26.1990026Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ecf68a3ee7bddc5b51a700df51d1bf0507780ac4:refs/remotes/origin/bad-fixture
+2026-11-25T15:19:26.6958776Z From https://github.com/eng-hanysabry/multistore
+2026-11-25T15:19:26.6960082Z  * [new ref]         ecf68a3ee7bddc5b51a700df51d1bf0507780ac4 -> origin/bad-fixture
+2026-11-25T15:19:26.6964321Z ##[endgroup]
+2026-11-25T15:19:26.6965316Z ##[group]Determining the checkout info
+2026-11-25T15:19:26.6967976Z ##[endgroup]
+2026-11-25T15:19:26.6976129Z [command]/usr/bin/git sparse-checkout disable
+2026-11-25T15:19:26.7036091Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-25T15:19:26.7069834Z ##[group]Checking out the ref
+2026-11-25T15:19:26.7084431Z [command]/usr/bin/git checkout --progress --force -B bad-fixture refs/remotes/origin/bad-fixture
+2026-11-25T15:19:26.7197675Z Switched to a new branch 'bad-fixture'
+2026-11-25T15:19:26.7203624Z branch 'bad-fixture' set up to track 'origin/bad-fixture'.
+2026-11-25T15:19:26.7209429Z ##[endgroup]
+2026-11-25T15:19:26.7258602Z [command]/usr/bin/git log -1 --format=%H
+2026-11-25T15:19:26.7284768Z ecf68a3ee7bddc5b51a700df51d1bf0507780ac4
+2026-11-25T15:19:26.7581952Z ##[group]Run actions/setup-node@v4
+2026-11-25T15:19:26.7582366Z with:
+2026-11-25T15:19:26.7582656Z   node-version: 22
+2026-11-25T15:19:26.7582944Z   cache: npm
+2026-11-25T15:19:26.7583287Z   cache-dependency-path: api/package-lock.json
+2026-11-25T15:19:26.7583659Z   always-auth: false
+2026-11-25T15:19:26.7583961Z   check-latest: false
+2026-11-25T15:19:26.7586632Z   token: ***
+2026-11-25T15:19:26.7586920Z env:
+2026-11-25T15:19:26.7587211Z   PGHOST: localhost
+2026-11-25T15:19:26.7587500Z   PGPORT: 5432
+2026-11-25T15:19:26.7587784Z   PGUSER: postgres
+2026-11-25T15:19:26.7588103Z   PGPASSWORD: postgres
+2026-11-25T15:19:26.7588398Z   PGDATABASE: postgres
+2026-11-25T15:19:26.7588688Z ##[endgroup]
+2026-11-25T15:19:26.9063830Z (node:2786) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-25T15:19:26.9065189Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-25T15:19:26.9068227Z Found in cache @ /opt/hostedtoolcache/node/22.23.5/x64
+2026-11-25T15:19:26.9069328Z ##[group]Environment details
+2026-11-25T15:19:27.3502631Z node: v22.23.5
+2026-11-25T15:19:27.3504279Z npm: 10.9.9
+2026-11-25T15:19:27.3504983Z yarn: 1.22.22
+2026-11-25T15:19:27.3506540Z ##[endgroup]
+2026-11-25T15:19:27.3522825Z [command]/opt/hostedtoolcache/node/22.23.5/x64/bin/npm config get cache
+2026-11-25T15:19:27.4674745Z /home/runner/.npm
+2026-11-25T15:19:27.7302976Z Cache hit for: node-cache-Linux-x64-npm-a99b98d1441cc9b1aed132777306ad9cbd492ee912eda84855463a73c628d411
+2026-11-25T15:19:27.7406692Z (node:2786) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-25T15:19:28.9999471Z Received 35247962 of 35247962 (100.0%), 34.0 MBs/sec
+2026-11-25T15:19:29.0000532Z Cache Size: ~34 MB (35247962 B)
+2026-11-25T15:19:29.0027106Z [command]/usr/bin/tar -xf /home/runner/work/_temp/719082e3-c11f-4e1c-b858-be768e625855/cache.tzst -P -C /home/runner/work/multistore/multistore --use-compress-program unzstd
+2026-11-25T15:19:29.0923053Z Cache restored successfully
+2026-11-25T15:19:29.0939291Z Cache restored from key: node-cache-Linux-x64-npm-a99b98d1441cc9b1aed132777306ad9cbd492ee912eda84855463a73c628d411
+2026-11-25T15:19:29.1112743Z ##[group]Run npm ci
+2026-11-25T15:19:29.1113189Z [36;1mnpm ci[0m
+2026-11-25T15:19:29.1148037Z shell: /usr/bin/bash -e {0}
+2026-11-25T15:19:29.1148405Z env:
+2026-11-25T15:19:29.1148816Z   PGHOST: localhost
+2026-11-25T15:19:29.1149151Z   PGPORT: 5432
+2026-11-25T15:19:29.1149457Z   PGUSER: postgres
+2026-11-25T15:19:29.1149750Z   PGPASSWORD: postgres
+2026-11-25T15:19:29.1150046Z   PGDATABASE: postgres
+2026-11-25T15:19:29.1150469Z ##[endgroup]
+2026-11-25T15:19:31.8991587Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-11-25T15:19:34.8431938Z 
+2026-11-25T15:19:34.8435251Z added 525 packages, and audited 526 packages in 6s
+2026-11-25T15:19:34.8435864Z 
+2026-11-25T15:19:34.8436249Z 130 packages are looking for funding
+2026-11-25T15:19:34.8438558Z   run `npm fund` for details
+2026-11-25T15:19:34.8741771Z 
+2026-11-25T15:19:34.8742854Z 18 moderate severity vulnerabilities
+2026-11-25T15:19:34.8748172Z 
+2026-11-25T15:19:34.8748884Z To address issues that do not require attention, run:
+2026-11-25T15:19:34.8749533Z   npm audit fix
+2026-11-25T15:19:34.8749718Z 
+2026-11-25T15:19:34.8750262Z To address all issues (including breaking changes), run:
+2026-11-25T15:19:34.8750814Z   npm audit fix --force
+2026-11-25T15:19:34.8751158Z 
+2026-11-25T15:19:34.8751531Z Run `npm audit` for details.
+2026-11-25T15:19:34.9327875Z ##[group]Run npm run format:check
+2026-11-25T15:19:34.9328390Z [36;1mnpm run format:check[0m
+2026-11-25T15:19:34.9352979Z shell: /usr/bin/bash -e {0}
+2026-11-25T15:19:34.9353384Z env:
+2026-11-25T15:19:34.9353680Z   PGHOST: localhost
+2026-11-25T15:19:34.9354060Z   PGPORT: 5432
+2026-11-25T15:19:34.9354385Z   PGUSER: postgres
+2026-11-25T15:19:34.9354706Z   PGPASSWORD: postgres
+2026-11-25T15:19:34.9355030Z   PGDATABASE: postgres
+2026-11-25T15:19:34.9355353Z ##[endgroup]
+2026-11-25T15:19:35.0300676Z 
+2026-11-25T15:19:35.0301278Z > multistore-api@0.0.0 format:check
+2026-11-25T15:19:35.0301913Z > prettier --check "src/**/*.ts" "test/**/*.ts" "scripts/**/*.ts"
+2026-11-25T15:19:35.0302251Z 
+2026-11-25T15:19:35.1186795Z Checking formatting...
+2026-11-25T15:19:35.5840945Z All matched files use Prettier code style!
+2026-11-25T15:19:35.6017894Z ##[group]Run npm run lint
+2026-11-25T15:19:35.6018309Z [36;1mnpm run lint[0m
+2026-11-25T15:19:35.6041315Z shell: /usr/bin/bash -e {0}
+2026-11-25T15:19:35.6041729Z env:
+2026-11-25T15:19:35.6042007Z   PGHOST: localhost
+2026-11-25T15:19:35.6042379Z   PGPORT: 5432
+2026-11-25T15:19:35.6042679Z   PGUSER: postgres
+2026-11-25T15:19:35.6042991Z   PGPASSWORD: postgres
+2026-11-25T15:19:35.6043354Z   PGDATABASE: postgres
+2026-11-25T15:19:35.6043635Z ##[endgroup]
+2026-11-25T15:19:35.7016986Z 
+2026-11-25T15:19:35.7017997Z > multistore-api@0.0.0 lint
+2026-11-25T15:19:35.7018929Z > eslint "src/**/*.ts" "test/**/*.ts" "scripts/**/*.ts"
+2026-11-25T15:19:35.7019663Z 
+2026-11-25T15:19:38.0037114Z 
+2026-11-25T15:19:38.0058252Z /home/runner/work/multistore/multistore/api/src/modules/catalog/domain/bad.ts
+2026-11-25T15:19:38.0102030Z ##[error]  1:1   error  '@nestjs/common' import is restricted from being used by a pattern. domain/ must not import framework or database packages (spec 5.3)  no-restricted-imports
+2026-11-25T15:19:38.0111507Z ##[error]  2:1   error  'pg' import is restricted from being used by a pattern. domain/ must not import framework or database packages (spec 5.3)              no-restricted-imports
+2026-11-25T15:19:38.0118427Z ##[error]  4:19  error  Unexpected any. Specify a different type                                                                                               @typescript-eslint/no-explicit-any
+2026-11-25T15:19:38.0121078Z ##[error]  5:1   error  Unexpected console statement                                                                                                           no-console
+2026-11-25T15:19:38.0122185Z 
+2026-11-25T15:19:38.0122915Z ✖ 4 problems (4 errors, 0 warnings)
+2026-11-25T15:19:38.0123263Z 
+2026-11-25T15:19:38.0880691Z ##[error]Process completed with exit code 1.
+2026-11-25T15:19:38.1059624Z Post job cleanup.
+2026-11-25T15:19:38.1985042Z [command]/usr/bin/git version
+2026-11-25T15:19:38.2034446Z git version 2.56.1
+2026-11-25T15:19:38.2077414Z Temporarily overriding HOME='/home/runner/work/_temp/5a055cfc-b7d5-4454-9ff9-4e6ca4270082' before making global git config changes
+2026-11-25T15:19:38.2079037Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-25T15:19:38.2093081Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/multistore/multistore
+2026-11-25T15:19:38.2190469Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-25T15:19:38.2248810Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-25T15:19:38.2718334Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-25T15:19:38.2729596Z http.https://github.com/.extraheader
+2026-11-25T15:19:38.2739478Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-25T15:19:38.2798625Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-25T15:19:38.3100658Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-25T15:19:38.3152456Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-25T15:19:38.3597700Z Print service container logs: d78a26850fc94b0fa133bfa98442aa9f_postgres16_8249ef
+2026-11-25T15:19:38.3602300Z ##[command]/usr/bin/docker logs --details d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:38.3763670Z  initdb: warning: enabling "trust" authentication for local connections
+2026-11-25T15:19:38.3764743Z  initdb: hint: You can change this by editing pg_hba.conf or using the option -A, or --auth-local and --auth-host, the next time you run initdb.
+2026-11-25T15:19:38.3765534Z  The files belonging to this database system will be owned by user "postgres".
+2026-11-25T15:19:38.3766074Z  This user must also own the server process.
+2026-11-25T15:19:38.3766689Z  
+2026-11-25T15:19:38.3767111Z  The database cluster will be initialized with locale "en_US.utf8".
+2026-11-25T15:19:38.3767640Z  The default database encoding has accordingly been set to "UTF8".
+2026-11-25T15:19:38.3768163Z  The default text search configuration will be set to "english".
+2026-11-25T15:19:38.3768735Z  
+2026-11-25T15:19:38.3769047Z  Data page checksums are disabled.
+2026-11-25T15:19:38.3769384Z  
+2026-11-25T15:19:38.3769806Z  fixing permissions on existing directory /var/lib/postgresql/data ... ok
+2026-11-25T15:19:38.3770248Z  creating subdirectories ... ok
+2026-11-25T15:19:38.3771045Z  2026-11-25 15:19:20.512 UTC [1] LOG:  starting PostgreSQL 16.16 (Debian 16.16-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-11-25T15:19:38.3771768Z  2026-11-25 15:19:20.512 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2026-11-25T15:19:38.3772593Z  2026-11-25 15:19:20.512 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+2026-11-25T15:19:38.3773190Z  2026-11-25 15:19:20.514 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-11-25T15:19:38.3773786Z  2026-11-25 15:19:20.516 UTC [62] LOG:  database system was shut down at 2026-11-25 15:19:20 UTC
+2026-11-25T15:19:38.3774379Z  2026-11-25 15:19:20.521 UTC [1] LOG:  database system is ready to accept connections
+2026-11-25T15:19:38.3774905Z  selecting dynamic shared memory implementation ... posix
+2026-11-25T15:19:38.3775370Z  selecting default max_connections ... 100
+2026-11-25T15:19:38.3775745Z  selecting default shared_buffers ... 128MB
+2026-11-25T15:19:38.3776232Z  selecting default time zone ... Etc/UTC
+2026-11-25T15:19:38.3776832Z  creating configuration files ... ok
+2026-11-25T15:19:38.3777182Z  running bootstrap script ... ok
+2026-11-25T15:19:38.3777640Z  performing post-bootstrap initialization ... ok
+2026-11-25T15:19:38.3778019Z  syncing data to disk ... ok
+2026-11-25T15:19:38.3778381Z  
+2026-11-25T15:19:38.3778644Z  
+2026-11-25T15:19:38.3779006Z  Success. You can now start the database server using:
+2026-11-25T15:19:38.3779389Z  
+2026-11-25T15:19:38.3779718Z      pg_ctl -D /var/lib/postgresql/data -l logfile start
+2026-11-25T15:19:38.3780156Z  
+2026-11-25T15:19:38.3780818Z  waiting for server to start....2026-11-25 15:19:20.270 UTC [48] LOG:  starting PostgreSQL 16.16 (Debian 16.16-1.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+2026-11-25T15:19:38.3781700Z  2026-11-25 15:19:20.271 UTC [48] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2026-11-25T15:19:38.3782359Z  2026-11-25 15:19:20.274 UTC [51] LOG:  database system was shut down at 2026-11-25 15:19:19 UTC
+2026-11-25T15:19:38.3782901Z  2026-11-25 15:19:20.277 UTC [48] LOG:  database system is ready to accept connections
+2026-11-25T15:19:38.3783400Z   done
+2026-11-25T15:19:38.3783721Z  server started
+2026-11-25T15:19:38.3784037Z  
+2026-11-25T15:19:38.3784441Z  /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+2026-11-25T15:19:38.3784980Z  
+2026-11-25T15:19:38.3785430Z  waiting for server to shut down....2026-11-25 15:19:20.387 UTC [48] LOG:  received fast shutdown request
+2026-11-25T15:19:38.3786015Z  2026-11-25 15:19:20.388 UTC [48] LOG:  aborting any active transactions
+2026-11-25T15:19:38.3787535Z  2026-11-25 15:19:20.390 UTC [48] LOG:  background worker "logical replication launcher" (PID 54) exited with exit code 1
+2026-11-25T15:19:38.3788261Z  2026-11-25 15:19:20.391 UTC [49] LOG:  shutting down
+2026-11-25T15:19:38.3788956Z  2026-11-25 15:19:20.392 UTC [49] LOG:  checkpoint starting: shutdown immediate
+2026-11-25T15:19:38.3790210Z  2026-11-25 15:19:20.395 UTC [49] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.004 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1504858, redo lsn=0/1504858
+2026-11-25T15:19:38.3791266Z  2026-11-25 15:19:20.397 UTC [48] LOG:  database system is shut down
+2026-11-25T15:19:38.3791760Z   done
+2026-11-25T15:19:38.3792056Z  server stopped
+2026-11-25T15:19:38.3792400Z  
+2026-11-25T15:19:38.3792740Z  PostgreSQL init process complete; ready for start up.
+2026-11-25T15:19:38.3793170Z  
+2026-11-25T15:19:38.3809438Z Stop and remove container: d78a26850fc94b0fa133bfa98442aa9f_postgres16_8249ef
+2026-11-25T15:19:38.3816683Z ##[command]/usr/bin/docker rm --force d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:40.1931347Z d39f290560a042f0941349e83a28c4bdb16b0de490054bc45a82fbc6fdf6ce82
+2026-11-25T15:19:40.1952489Z Remove container network: github_network_6e4783f625c54741a59d5d366d8e56a6
+2026-11-25T15:19:40.1957777Z ##[command]/usr/bin/docker network rm github_network_6e4783f625c54741a59d5d366d8e56a6
+2026-11-25T15:19:40.2564560Z github_network_6e4783f625c54741a59d5d366d8e56a6
+2026-11-25T15:19:40.2647622Z Cleaning up orphan processes
+2026-11-25T15:19:40.3051199Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,339 @@
+﻿2026-11-25T15:19:09.8997493Z Current runner version: '2.338.2'
+2026-11-25T15:19:09.9022886Z ##[group]Runner Image Provisioner
+2026-11-25T15:19:09.9024048Z Hosted Compute Agent
+2026-11-25T15:19:09.9024778Z Version: 20261111.635
+2026-11-25T15:19:09.9025412Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+2026-11-25T15:19:09.9026265Z Build Date: 2026-11-11T01:49:01Z
+2026-11-25T15:19:09.9027019Z Worker ID: {1e64019b-f1b1-4808-bb0a-deb0fe1b1bc5}
+2026-11-25T15:19:09.9027716Z Region: centralus
+2026-11-25T15:19:09.9028793Z Cloud: Azure
+2026-11-25T15:19:09.9029352Z ##[endgroup]
+2026-11-25T15:19:09.9031416Z ##[group]Operating System
+2026-11-25T15:19:09.9032188Z Ubuntu
+2026-11-25T15:19:09.9032756Z 26.04.1
+2026-11-25T15:19:09.9033334Z LTS
+2026-11-25T15:19:09.9033870Z ##[endgroup]
+2026-11-25T15:19:09.9034808Z ##[group]Runner Image
+2026-11-25T15:19:09.9035566Z Image: ubuntu-26.04
+2026-11-25T15:19:09.9036135Z Version: 20261116.202.1
+2026-11-25T15:19:09.9037490Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261116.202/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-25T15:19:09.9039474Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261116.202
+2026-11-25T15:19:09.9040490Z ##[endgroup]
+2026-11-25T15:19:09.9041568Z ##[group]GITHUB_TOKEN Permissions
+2026-11-25T15:19:09.9043939Z Contents: read
+2026-11-25T15:19:09.9044595Z Metadata: read
+2026-11-25T15:19:09.9045239Z ##[endgroup]
+2026-11-25T15:19:09.9047374Z Secret source: Actions
+2026-11-25T15:19:09.9048788Z Cache mode: write
+2026-11-25T15:19:09.9049785Z Prepare workflow directory
+2026-11-25T15:19:09.9483379Z Prepare all required actions
+2026-11-25T15:19:09.9534184Z Getting action download info
+2026-11-25T15:19:10.2403058Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-25T15:19:10.3971584Z Download action repository 'actions/setup-java@v4' (SHA:cf277c60eb25467037889841efdb72551f06f6c3)
+2026-11-25T15:19:10.9505167Z Download action repository 'subosito/flutter-action@v2' (SHA:1a449444c387b1966244ae4d4f8c696479add0b2)
+2026-11-25T15:19:11.2043209Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-11-25T15:19:11.4716595Z Getting action download info
+2026-11-25T15:19:11.5977507Z Download action repository 'actions/cache@v5' (SHA:caa296126883cff596d87d8935842f9db880ef25)
+2026-11-25T15:19:11.7439516Z Complete job name: app
+2026-11-25T15:19:11.8668500Z ##[group]Run actions/checkout@v4
+2026-11-25T15:19:11.8670137Z with:
+2026-11-25T15:19:11.8671070Z   repository: eng-hanysabry/multistore
+2026-11-25T15:19:11.8681148Z   token: ***
+2026-11-25T15:19:11.8682006Z   ssh-strict: true
+2026-11-25T15:19:11.8682857Z   ssh-user: git
+2026-11-25T15:19:11.8683744Z   persist-credentials: true
+2026-11-25T15:19:11.8684745Z   clean: true
+2026-11-25T15:19:11.8685638Z   sparse-checkout-cone-mode: true
+2026-11-25T15:19:11.8686680Z   fetch-depth: 1
+2026-11-25T15:19:11.8687549Z   fetch-tags: false
+2026-11-25T15:19:11.8688689Z   show-progress: true
+2026-11-25T15:19:11.8689571Z   lfs: false
+2026-11-25T15:19:11.8690415Z   submodules: false
+2026-11-25T15:19:11.8691306Z   set-safe-directory: true
+2026-11-25T15:19:11.8692327Z   allow-unsafe-pr-checkout: false
+2026-11-25T15:19:11.8693711Z ##[endgroup]
+2026-11-25T15:19:12.1506419Z Syncing repository: eng-hanysabry/multistore
+2026-11-25T15:19:12.1510830Z ##[group]Getting Git version info
+2026-11-25T15:19:12.1513228Z Working directory is '/home/runner/work/multistore/multistore'
+2026-11-25T15:19:12.1516637Z [command]/usr/bin/git version
+2026-11-25T15:19:12.1531104Z git version 2.56.1
+2026-11-25T15:19:12.1565502Z ##[endgroup]
+2026-11-25T15:19:12.1575319Z Temporarily overriding HOME='/home/runner/work/_temp/89f3e2c2-efb6-4cdf-b6d0-79b38e5b0587' before making global git config changes
+2026-11-25T15:19:12.1581133Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-25T15:19:12.1586295Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/multistore/multistore
+2026-11-25T15:19:12.1647362Z Deleting the contents of '/home/runner/work/multistore/multistore'
+2026-11-25T15:19:12.1651619Z ##[group]Initializing the repository
+2026-11-25T15:19:12.1655482Z [command]/usr/bin/git init /home/runner/work/multistore/multistore
+2026-11-25T15:19:12.1767492Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-25T15:19:12.1771437Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-25T15:19:12.1774781Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-25T15:19:12.1777493Z hint: call:
+2026-11-25T15:19:12.1779146Z hint:
+2026-11-25T15:19:12.1780998Z hint: 	git config --global init.defaultBranch <name>
+2026-11-25T15:19:12.1783624Z hint:
+2026-11-25T15:19:12.1785905Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-25T15:19:12.1790545Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-25T15:19:12.1793123Z hint:
+2026-11-25T15:19:12.1794185Z hint: 	git branch -m <name>
+2026-11-25T15:19:12.1795389Z hint:
+2026-11-25T15:19:12.1797409Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-25T15:19:12.1801532Z Initialized empty Git repository in /home/runner/work/multistore/multistore/.git/
+2026-11-25T15:19:12.1808064Z [command]/usr/bin/git remote add origin https://github.com/eng-hanysabry/multistore
+2026-11-25T15:19:12.1849139Z ##[endgroup]
+2026-11-25T15:19:12.1851881Z ##[group]Disabling automatic garbage collection
+2026-11-25T15:19:12.1854264Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-25T15:19:12.1890378Z ##[endgroup]
+2026-11-25T15:19:12.1891818Z ##[group]Setting up auth
+2026-11-25T15:19:12.1898553Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-25T15:19:12.1938326Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-25T15:19:12.2473387Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-25T15:19:12.2512073Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-25T15:19:12.2792514Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-25T15:19:12.2829507Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-25T15:19:12.3105178Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-25T15:19:12.3146866Z ##[endgroup]
+2026-11-25T15:19:12.3148916Z ##[group]Fetching the repository
+2026-11-25T15:19:12.3157625Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ecf68a3ee7bddc5b51a700df51d1bf0507780ac4:refs/remotes/origin/bad-fixture
+2026-11-25T15:19:12.6640029Z From https://github.com/eng-hanysabry/multistore
+2026-11-25T15:19:12.6642611Z  * [new ref]         ecf68a3ee7bddc5b51a700df51d1bf0507780ac4 -> origin/bad-fixture
+2026-11-25T15:19:12.6645914Z ##[endgroup]
+2026-11-25T15:19:12.6646936Z ##[group]Determining the checkout info
+2026-11-25T15:19:12.6650284Z ##[endgroup]
+2026-11-25T15:19:12.6656408Z [command]/usr/bin/git sparse-checkout disable
+2026-11-25T15:19:12.6712022Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-25T15:19:12.6742235Z ##[group]Checking out the ref
+2026-11-25T15:19:12.6748885Z [command]/usr/bin/git checkout --progress --force -B bad-fixture refs/remotes/origin/bad-fixture
+2026-11-25T15:19:12.6888385Z Switched to a new branch 'bad-fixture'
+2026-11-25T15:19:12.6893952Z branch 'bad-fixture' set up to track 'origin/bad-fixture'.
+2026-11-25T15:19:12.6899784Z ##[endgroup]
+2026-11-25T15:19:12.6944239Z [command]/usr/bin/git log -1 --format=%H
+2026-11-25T15:19:12.6968586Z ecf68a3ee7bddc5b51a700df51d1bf0507780ac4
+2026-11-25T15:19:12.7261379Z ##[group]Run actions/setup-java@v4
+2026-11-25T15:19:12.7261740Z with:
+2026-11-25T15:19:12.7262002Z   distribution: temurin
+2026-11-25T15:19:12.7262278Z   java-version: 17
+2026-11-25T15:19:12.7262535Z   java-package: jdk
+2026-11-25T15:19:12.7262802Z   check-latest: false
+2026-11-25T15:19:12.7263063Z   server-id: github
+2026-11-25T15:19:12.7263329Z   server-username: GITHUB_ACTOR
+2026-11-25T15:19:12.7263643Z   server-password: GITHUB_TOKEN
+2026-11-25T15:19:12.7263942Z   overwrite-settings: true
+2026-11-25T15:19:12.7264219Z   job-status: success
+2026-11-25T15:19:12.7266972Z   token: ***
+2026-11-25T15:19:12.7267225Z ##[endgroup]
+2026-11-25T15:19:12.9015212Z ##[warning]setup-java v4 is deprecated and will no longer receive updates. Please migrate to actions/setup-java@v5.
+2026-11-25T15:19:12.9028013Z ##[group]Installed distributions
+2026-11-25T15:19:12.9066726Z Resolved Java 17.0.21+9 from tool-cache
+2026-11-25T15:19:12.9067398Z Setting Java 17.0.21+9 as the default
+2026-11-25T15:19:12.9076850Z (node:2382) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-25T15:19:12.9077650Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-25T15:19:12.9081529Z Creating toolchains.xml for JDK version 17 from temurin
+2026-11-25T15:19:12.9158493Z Writing to /home/runner/.m2/toolchains.xml
+2026-11-25T15:19:12.9159043Z 
+2026-11-25T15:19:12.9159274Z Java configuration:
+2026-11-25T15:19:12.9159785Z   Distribution: temurin
+2026-11-25T15:19:12.9160432Z   Version: 17.0.21+9
+2026-11-25T15:19:12.9161273Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:12.9161800Z 
+2026-11-25T15:19:12.9162949Z ##[endgroup]
+2026-11-25T15:19:12.9178813Z Creating settings.xml with server-id: github
+2026-11-25T15:19:12.9213051Z Writing to /home/runner/.m2/settings.xml
+2026-11-25T15:19:12.9607601Z ##[group]Run subosito/flutter-action@v2
+2026-11-25T15:19:12.9608473Z with:
+2026-11-25T15:19:12.9608865Z   channel: stable
+2026-11-25T15:19:12.9609322Z   cache: true
+2026-11-25T15:19:12.9609871Z   architecture: X64
+2026-11-25T15:19:12.9610491Z   pub-cache-path: default
+2026-11-25T15:19:12.9611120Z   dry-run: false
+2026-11-25T15:19:12.9611639Z   git-source: https://github.com/flutter/flutter.git
+2026-11-25T15:19:12.9612010Z env:
+2026-11-25T15:19:12.9612358Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:12.9612904Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:12.9613326Z ##[endgroup]
+2026-11-25T15:19:12.9675337Z ##[start-action display=Make yq tool available on Windows runners;id=__subosito_flutter-action.__run]
+2026-11-25T15:19:12.9687333Z ##[end-action id=__subosito_flutter-action.__run;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-25T15:19:12.9690090Z ##[start-action display=Make setup script executable;id=__subosito_flutter-action.__run_2]
+2026-11-25T15:19:12.9728619Z ##[group]Run chmod +x "$GITHUB_ACTION_PATH/setup.sh"
+2026-11-25T15:19:12.9729131Z [36;1mchmod +x "$GITHUB_ACTION_PATH/setup.sh"[0m
+2026-11-25T15:19:12.9767281Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-25T15:19:12.9767684Z env:
+2026-11-25T15:19:12.9768355Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:12.9768919Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:12.9769348Z ##[endgroup]
+2026-11-25T15:19:12.9890563Z ##[end-action id=__subosito_flutter-action.__run_2;outcome=success;conclusion=success;duration_ms=19]
+2026-11-25T15:19:12.9893239Z ##[start-action display=Set action inputs;id=__subosito_flutter-action.flutter-action]
+2026-11-25T15:19:12.9961626Z ##[group]Run $GITHUB_ACTION_PATH/setup.sh -p \
+2026-11-25T15:19:12.9962376Z [36;1m$GITHUB_ACTION_PATH/setup.sh -p \[0m
+2026-11-25T15:19:12.9962999Z [36;1m  -n '' \[0m
+2026-11-25T15:19:12.9963780Z [36;1m  -f '' \[0m
+2026-11-25T15:19:12.9964233Z [36;1m  -a 'X64' \[0m
+2026-11-25T15:19:12.9964687Z [36;1m  -k '' \[0m
+2026-11-25T15:19:12.9965116Z [36;1m  -c '' \[0m
+2026-11-25T15:19:12.9965545Z [36;1m  -l '' \[0m
+2026-11-25T15:19:12.9965991Z [36;1m  -d 'default' \[0m
+2026-11-25T15:19:12.9966632Z [36;1m  -g 'https://github.com/flutter/flutter.git' \[0m
+2026-11-25T15:19:12.9967277Z [36;1m  stable[0m
+2026-11-25T15:19:13.0000516Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-25T15:19:13.0000927Z env:
+2026-11-25T15:19:13.0001290Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:13.0001853Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:13.0002286Z ##[endgroup]
+2026-11-25T15:19:13.3551897Z ##[end-action id=__subosito_flutter-action.flutter-action;outcome=success;conclusion=success;duration_ms=365]
+2026-11-25T15:19:13.3559896Z ##[start-action display=Cache Flutter;id=__subosito_flutter-action.cache-flutter]
+2026-11-25T15:19:13.3636685Z ##[group]Run actions/cache@v5
+2026-11-25T15:19:13.3637017Z with:
+2026-11-25T15:19:13.3637324Z   path: /opt/hostedtoolcache/flutter/stable-3.50.1-x64
+2026-11-25T15:19:13.3638108Z   key: flutter-linux-stable-3.50.1-x64-ae9b586f34a8443573f82ef57c3bf914a908cbf7
+2026-11-25T15:19:13.3638605Z   enableCrossOsArchive: false
+2026-11-25T15:19:13.3638904Z   fail-on-cache-miss: false
+2026-11-25T15:19:13.3639181Z   lookup-only: false
+2026-11-25T15:19:13.3639437Z   save-always: false
+2026-11-25T15:19:13.3639686Z env:
+2026-11-25T15:19:13.3640027Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:13.3640581Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:13.3641012Z ##[endgroup]
+2026-11-25T15:19:13.6587590Z Cache not found for input keys: flutter-linux-stable-3.50.1-x64-ae9b586f34a8443573f82ef57c3bf914a908cbf7
+2026-11-25T15:19:13.6659884Z ##[end-action id=__subosito_flutter-action.cache-flutter;outcome=success;conclusion=success;duration_ms=309]
+2026-11-25T15:19:13.6663777Z ##[start-action display=Cache pub dependencies;id=__subosito_flutter-action.cache-pub]
+2026-11-25T15:19:13.7506580Z ##[group]Run actions/cache@v5
+2026-11-25T15:19:13.7506894Z with:
+2026-11-25T15:19:13.7507152Z   path: /home/runner/.pub-cache
+2026-11-25T15:19:13.7508336Z   key: flutter-pub-linux-stable-3.50.1-x64-ae9b586f34a8443573f82ef57c3bf914a908cbf7-45fd8996e3c7482a782a9cc61225eadc3391fcfe1d143cbceaf0025c31b4e6cd
+2026-11-25T15:19:13.7509173Z   enableCrossOsArchive: false
+2026-11-25T15:19:13.7509480Z   fail-on-cache-miss: false
+2026-11-25T15:19:13.7509762Z   lookup-only: false
+2026-11-25T15:19:13.7510021Z   save-always: false
+2026-11-25T15:19:13.7510301Z env:
+2026-11-25T15:19:13.7510644Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:13.7511193Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:13.7511638Z ##[endgroup]
+2026-11-25T15:19:14.0228620Z Cache not found for input keys: flutter-pub-linux-stable-3.50.1-x64-ae9b586f34a8443573f82ef57c3bf914a908cbf7-45fd8996e3c7482a782a9cc61225eadc3391fcfe1d143cbceaf0025c31b4e6cd
+2026-11-25T15:19:14.0325951Z ##[end-action id=__subosito_flutter-action.cache-pub;outcome=success;conclusion=success;duration_ms=366]
+2026-11-25T15:19:14.0330124Z ##[start-action display=Run setup script;id=__subosito_flutter-action.__run_3]
+2026-11-25T15:19:14.0384890Z ##[group]Run $GITHUB_ACTION_PATH/setup.sh \
+2026-11-25T15:19:14.0385327Z [36;1m$GITHUB_ACTION_PATH/setup.sh \[0m
+2026-11-25T15:19:14.0385669Z [36;1m  -n '3.50.1' \[0m
+2026-11-25T15:19:14.0385957Z [36;1m  -a 'x64' \[0m
+2026-11-25T15:19:14.0386343Z [36;1m  -c '/opt/hostedtoolcache/flutter/stable-3.50.1-x64' \[0m
+2026-11-25T15:19:14.0386769Z [36;1m  -d '/home/runner/.pub-cache' \[0m
+2026-11-25T15:19:14.0387091Z [36;1m  stable[0m
+2026-11-25T15:19:14.0420265Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-11-25T15:19:14.0420687Z env:
+2026-11-25T15:19:14.0421253Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:14.0421814Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:14.0422260Z ##[endgroup]
+2026-11-25T15:19:14.3649613Z   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
+2026-11-25T15:19:14.3656987Z                                  Dload  Upload  Total   Spent   Left   Speed
+2026-11-25T15:19:14.3658202Z 
+2026-11-25T15:19:15.3639255Z   0      0   0      0   0      0      0      0                              0
+2026-11-25T15:19:16.3631315Z  13  1.41G  13 201.9M   0      0 202.1M      0   00:07           00:07 201.9M
+2026-11-25T15:19:17.3620764Z  35  1.41G  35 511.6M   0      0 256.0M      0   00:05   00:01   00:04 255.9M
+2026-11-25T15:19:18.3614121Z  58  1.41G  58 841.4M   0      0 280.7M      0   00:05   00:02   00:03 280.6M
+2026-11-25T15:19:19.3603605Z  77  1.41G  77  1.09G   0      0 279.9M      0   00:05   00:03   00:02 279.9M
+2026-11-25T15:19:19.3939321Z  99  1.41G  99  1.40G   0      0 287.5M      0   00:05   00:04   00:01 287.5M
+2026-11-25T15:19:19.3940461Z 100  1.41G 100  1.41G   0      0 287.9M      0   00:05   00:05         287.5M
+2026-11-25T15:19:19.3941259Z 100  1.41G 100  1.41G   0      0 287.9M      0   00:05   00:05         287.5M
+2026-11-25T15:19:19.3942000Z 100  1.41G 100  1.41G   0      0 287.9M      0   00:05   00:05         287.5M
+2026-11-25T15:19:47.3445862Z ##[end-action id=__subosito_flutter-action.__run_3;outcome=success;conclusion=success;duration_ms=33311]
+2026-11-25T15:19:47.3503786Z ##[group]Run flutter --version
+2026-11-25T15:19:47.3504133Z [36;1mflutter --version[0m
+2026-11-25T15:19:47.3537377Z shell: /usr/bin/bash -e {0}
+2026-11-25T15:19:47.3537639Z env:
+2026-11-25T15:19:47.3538234Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:47.3538843Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:47.3539320Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.50.1-x64/flutter
+2026-11-25T15:19:47.3539711Z   PUB_CACHE: /home/runner/.pub-cache
+2026-11-25T15:19:47.3539995Z ##[endgroup]
+2026-11-25T15:19:47.4669360Z Flutter 3.50.1 • channel stable • https://github.com/flutter/flutter.git
+2026-11-25T15:19:47.4670488Z Framework • revision ae9b586f34 (7 days ago) • 2026-11-18 17:01:07 -0800
+2026-11-25T15:19:47.4671791Z Engine • hash 51379e6df48ea8ee7205623b90fe66491cad8df3 (revision 4d35714800) (7 days ago) • 2026-11-18 01:50:07.000Z
+2026-11-25T15:19:47.4672744Z Tools • Dart 3.14.0 • DevTools 2.61.0
+2026-11-25T15:19:47.4746512Z ##[group]Run flutter pub get
+2026-11-25T15:19:47.4746849Z [36;1mflutter pub get[0m
+2026-11-25T15:19:47.4779601Z shell: /usr/bin/bash -e {0}
+2026-11-25T15:19:47.4779857Z env:
+2026-11-25T15:19:47.4780162Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:47.4780665Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:47.4781187Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.50.1-x64/flutter
+2026-11-25T15:19:47.4781620Z   PUB_CACHE: /home/runner/.pub-cache
+2026-11-25T15:19:47.4781878Z ##[endgroup]
+2026-11-25T15:19:51.9424474Z Resolving dependencies...
+2026-11-25T15:19:52.3245383Z Downloading packages...
+2026-11-25T15:19:54.6234946Z   material_color_utilities 0.13.0 (0.13.1 available)
+2026-11-25T15:19:54.6235889Z   test_api 0.7.14 (0.7.15 available)
+2026-11-25T15:19:54.6236642Z   vector_math 2.4.3 (2.4.4 available)
+2026-11-25T15:19:54.6237567Z Got dependencies!
+2026-11-25T15:19:54.6238749Z 3 packages have newer versions incompatible with dependency constraints.
+2026-11-25T15:19:54.6239524Z Try `flutter pub outdated` for more information.
+2026-11-25T15:19:54.9218725Z ##[group]Run flutter gen-l10n
+2026-11-25T15:19:54.9219080Z [36;1mflutter gen-l10n[0m
+2026-11-25T15:19:54.9251982Z shell: /usr/bin/bash -e {0}
+2026-11-25T15:19:54.9252235Z env:
+2026-11-25T15:19:54.9252545Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:54.9253262Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:54.9253750Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.50.1-x64/flutter
+2026-11-25T15:19:54.9254120Z   PUB_CACHE: /home/runner/.pub-cache
+2026-11-25T15:19:54.9254368Z ##[endgroup]
+2026-11-25T15:19:55.0824428Z Because l10n.yaml exists, the options defined there will be used instead.
+2026-11-25T15:19:55.0825375Z To use the command line arguments, delete the l10n.yaml file in the Flutter project.
+2026-11-25T15:19:55.0825937Z 
+2026-11-25T15:19:55.0825971Z 
+2026-11-25T15:19:55.2480092Z ##[group]Run dart format --set-exit-if-changed .
+2026-11-25T15:19:55.2480514Z [36;1mdart format --set-exit-if-changed .[0m
+2026-11-25T15:19:55.2513079Z shell: /usr/bin/bash -e {0}
+2026-11-25T15:19:55.2513333Z env:
+2026-11-25T15:19:55.2513634Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:55.2514126Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:55.2514623Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.50.1-x64/flutter
+2026-11-25T15:19:55.2514990Z   PUB_CACHE: /home/runner/.pub-cache
+2026-11-25T15:19:55.2515237Z ##[endgroup]
+2026-11-25T15:19:55.3083767Z Formatted 14 files (0 changed) in 0.03 seconds.
+2026-11-25T15:19:55.3156649Z ##[group]Run flutter analyze --fatal-warnings --fatal-infos
+2026-11-25T15:19:55.3157122Z [36;1mflutter analyze --fatal-warnings --fatal-infos[0m
+2026-11-25T15:19:55.3190341Z shell: /usr/bin/bash -e {0}
+2026-11-25T15:19:55.3190592Z env:
+2026-11-25T15:19:55.3190897Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:55.3191400Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+2026-11-25T15:19:55.3191865Z   FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.50.1-x64/flutter
+2026-11-25T15:19:55.3192244Z   PUB_CACHE: /home/runner/.pub-cache
+2026-11-25T15:19:55.3192494Z ##[endgroup]
+2026-11-25T15:19:55.5488990Z Resolving dependencies...
+2026-11-25T15:19:55.5870203Z Downloading packages...
+2026-11-25T15:19:55.5888821Z   material_color_utilities 0.13.0 (0.13.1 available)
+2026-11-25T15:19:55.5889818Z   test_api 0.7.14 (0.7.15 available)
+2026-11-25T15:19:55.5890313Z   vector_math 2.4.3 (2.4.4 available)
+2026-11-25T15:19:55.5890851Z Got dependencies!
+2026-11-25T15:19:55.5891422Z 3 packages have newer versions incompatible with dependency constraints.
+2026-11-25T15:19:55.5892144Z Try `flutter pub outdated` for more information.
+2026-11-25T15:20:05.3758330Z Analyzing app...                                                
+2026-11-25T15:20:05.3766198Z 
+2026-11-25T15:20:05.3787576Z    info • The imported package 'dio' isn't a dependency of the importing package. Try adding a dependency for 'dio' in the 'pubspec.yaml' file • lib/features/catalog/domain/bad.dart:1:8 • depend_on_referenced_packages
+2026-11-25T15:20:05.3792179Z   error • Target of URI doesn't exist: 'package:dio/dio.dart'. Try creating the file referenced by the URI, or try using a URI for a file that does exist • lib/features/catalog/domain/bad.dart:1:8 • uri_does_not_exist
+2026-11-25T15:20:05.3795679Z   error • The function 'Dio' isn't defined. Try importing the library that defines 'Dio', correcting the name to the name of an existing function, or defining a function named 'Dio' • lib/features/catalog/domain/bad.dart:4:20 • undefined_function
+2026-11-25T15:20:05.3803639Z 
+2026-11-25T15:20:05.3861421Z 3 issues found. (ran in 9.3s)
+2026-11-25T15:20:05.3973971Z ##[error]Process completed with exit code 1.
+2026-11-25T15:20:05.4187704Z Post job cleanup.
+2026-11-25T15:20:05.4192400Z ##[start-action display=Cache pub dependencies;id=__dd9e99f8-7ef9-4b2a-827b-3e16b698764c.cache-pub]
+2026-11-25T15:20:05.4194769Z ##[end-action id=__dd9e99f8-7ef9-4b2a-827b-3e16b698764c.cache-pub;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-25T15:20:05.4196670Z ##[start-action display=Cache Flutter;id=__dd9e99f8-7ef9-4b2a-827b-3e16b698764c.cache-flutter]
+2026-11-25T15:20:05.4199160Z ##[end-action id=__dd9e99f8-7ef9-4b2a-827b-3e16b698764c.cache-flutter;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-11-25T15:20:05.4286462Z Post job cleanup.
+2026-11-25T15:20:05.5746338Z (node:2923) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-25T15:20:05.5748259Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-25T15:20:05.5957424Z Post job cleanup.
+2026-11-25T15:20:05.7124217Z [command]/usr/bin/git version
+2026-11-25T15:20:05.7184656Z git version 2.56.1
+2026-11-25T15:20:05.7242828Z Temporarily overriding HOME='/home/runner/work/_temp/31bd3455-2654-4e6d-ad81-e9da69a1e4e7' before making global git config changes
+2026-11-25T15:20:05.7244379Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-25T15:20:05.7268768Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/multistore/multistore
+2026-11-25T15:20:05.7320656Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-25T15:20:05.7402139Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-25T15:20:05.7832512Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-25T15:20:05.7882333Z http.https://github.com/.extraheader
+2026-11-25T15:20:05.7922893Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-25T15:20:05.7961787Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-25T15:20:05.8317385Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-25T15:20:05.8360856Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-25T15:20:05.8806071Z Cleaning up orphan processes
+2026-11-25T15:20:05.9272503Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-java@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
