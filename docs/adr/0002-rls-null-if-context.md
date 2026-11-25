@@ -1,0 +1,2 @@
+# ADR 0002: RLS context read with NULLIF
+Status: accepted (spec v4.9, section 6.2). Reason: on pooled connections, `current_setting(..., true)` returns an empty string, not NULL, after an earlier `set_config(..., true)`; casting `''` to uuid raises an error. Policies use `NULLIF(current_setting('app.tenant_id', true), '')::uuid` (and the same for `app.user_id`). Evidence: IP-1 spike on the Supabase Transaction Pooler, 64 of 67 checks as written, 67 of 67 with NULLIF. A migration lint rejects uuid casts without NULLIF.

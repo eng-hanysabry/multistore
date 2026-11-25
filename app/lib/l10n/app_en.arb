@@ -1,0 +1,6 @@
+{
+  "@@locale": "en",
+  "appTitle": "MultiStore",
+  "@appTitle": { "description": "Application title" },
+  "foundationReady": "Foundation ready"
+}

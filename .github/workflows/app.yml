@@ -1,0 +1,51 @@
+name: app
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', 'contracts/**', '.github/workflows/app.yml']
+  pull_request:
+    paths: ['app/**', 'contracts/**', '.github/workflows/app.yml']
+permissions:
+  contents: read
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter --version
+      - run: flutter pub get
+      - run: flutter gen-l10n
+      - run: dart format --set-exit-if-changed .
+      - run: flutter analyze --fatal-warnings --fatal-infos
+      - run: dart run tool/check_boundaries.dart
+      - run: flutter test --coverage
+      - name: Coverage gate (80% of instrumented lines)
+        run: |
+          python3 - <<'PY'
+          tot = hit = 0
+          for line in open('coverage/lcov.info'):
+              if line.startswith('LF:'): tot += int(line[3:])
+              if line.startswith('LH:'): hit += int(line[3:])
+          pct = 100 * hit / tot if tot else 0
+          print(f'line coverage {pct:.1f}% ({hit}/{tot})')
+          raise SystemExit(0 if pct >= 80 else 1)
+          PY
+      - name: Build downloadable APK (release, unsigned-debug-key, placeholder API URL)
+        run: flutter build apk --release --dart-define=API_BASE_URL=https://api.example.invalid
+      - uses: actions/upload-artifact@v4
+        with:
+          name: multistore-app-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14

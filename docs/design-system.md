@@ -1,0 +1,2 @@
+# Design system
+IP-2 contains only the folder shape and two tokens: `lib/design_system/tokens/spacing.dart` and the directional padding helper in `layout/`. Rules (spec 15): components take data as constructor parameters and send actions out as callbacks; no business logic, no API calls, no feature providers; spacing, radius, colors and text styles come from tokens only; every component gets a widget test per state in AR RTL and EN LTR. Enforced for imports by `tool/check_boundaries.dart`. Component catalog and gallery screen arrive with the first screens (IP-6).

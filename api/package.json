@@ -1,0 +1,46 @@
+{
+  "name": "multistore-api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "MultiStore API (IP-2 foundation: config, logging redaction, lints, RLS harness)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "jest --selectProjects unit",
+    "test:rls": "jest --selectProjects rls --runInBand",
+    "test:all": "jest --runInBand --coverage",
+    "lint:migrations": "ts-node --transpile-only scripts/lint-migrations.ts",
+    "contract:generate": "ts-node --transpile-only scripts/generate-openapi.ts",
+    "contract:check": "ts-node --transpile-only scripts/generate-openapi.ts --check"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.6.2",
+    "@nestjs/config": "^12.1.1",
+    "@nestjs/core": "^12.6.2",
+    "@nestjs/platform-express": "^12.6.2",
+    "@nestjs/swagger": "^12.1.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.6.10",
+    "@types/pg": "^8.23.1",
+    "eslint": "^10.15.0",
+    "eslint-plugin-boundaries": "^7.4.5",
+    "jest": "^30.5.2",
+    "pg": "^8.23.1",
+    "prettier": "^3.10.1",
+    "ts-jest": "^29.4.15",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.74.0"
+  }
+}

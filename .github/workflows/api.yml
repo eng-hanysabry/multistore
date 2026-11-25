@@ -1,0 +1,45 @@
+name: api
+on:
+  push:
+    branches: [main]
+    paths: ['api/**', 'contracts/**', '.github/workflows/api.yml']
+  pull_request:
+    paths: ['api/**', 'contracts/**', '.github/workflows/api.yml']
+permissions:
+  contents: read
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run lint:migrations
+      - run: npm run contract:check
+      - name: Unit, isolation and RLS tests with coverage gate
+        run: npx jest --runInBand --coverage
