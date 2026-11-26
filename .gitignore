@@ -5,3 +5,10 @@
 gmail-refresh-token.txt
 *.session.json
 .vercel
+
+# backup rehearsal output, never commit (spec R-4)
+ops/backup/out/
+*.dump
+*.age
+*.gpg
+multistore-*.manifest.txt
