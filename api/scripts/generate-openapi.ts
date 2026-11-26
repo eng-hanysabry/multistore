@@ -6,14 +6,19 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Module } from '@nestjs/common';
 import { HealthService } from '../src/modules/health/application/health.service';
 import { HealthController } from '../src/modules/health/presentation/health.controller';
+import { AuthService } from '../src/modules/auth/application/auth-service';
+import { AuthController } from '../src/modules/auth/presentation/auth.controller';
 
 /**
  * The contract is built from controllers only, with stub providers, so it needs no database, no
  * environment and no network. Every new controller is added to this list.
  */
 @Module({
-  controllers: [HealthController],
-  providers: [{ provide: HealthService, useValue: {} }],
+  controllers: [HealthController, AuthController],
+  providers: [
+    { provide: HealthService, useValue: {} },
+    { provide: AuthService, useValue: {} },
+  ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class -- Nest module marker
 class ContractModule {}
