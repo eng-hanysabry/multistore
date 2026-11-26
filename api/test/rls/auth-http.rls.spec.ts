@@ -208,6 +208,47 @@ describe('auth endpoints over HTTP (section 9, STM-11..13)', () => {
     expect(JSON.stringify(res.body)).not.toContain('anything');
   });
 
+  it('STM-16: mass assignment of role, is_super_admin or tenant_id is rejected; no row created', async () => {
+    for (const extra of [
+      { role: 'SUPER_ADMIN' },
+      { is_super_admin: true },
+      { tenant_id: '11111111-1111-4111-8111-111111111111' },
+      { status: 'ACTIVE' },
+    ]) {
+      await http()
+        .post('/auth/register')
+        .send({ email: 'mass@example.com', password: 'pw-12345', ...extra })
+        .expect(400);
+    }
+    const row = await su(
+      async (c) =>
+        (await c.query("SELECT count(*)::int AS n FROM users WHERE email = 'mass@example.com'"))
+          .rows[0].n,
+    );
+    expect(Number(row)).toBe(0);
+  });
+
+  it('STM-14 over HTTP: a consumed verification code cannot be replayed', async () => {
+    await http().post('/auth/register').send({ email: 'r@example.com', password: 'pw-12345' });
+    const code = await lastCode();
+    await http().post('/auth/verify-email').send({ email: 'r@example.com', code }).expect(200);
+    // replay: the consumed code is invalid and the account state does not change again
+    const replay = await http()
+      .post('/auth/verify-email')
+      .send({ email: 'r@example.com', code })
+      .expect(400);
+    expect(replay.body.code).toBe('CODE_INVALID');
+    const codes = await su(
+      async (c) =>
+        (
+          await c.query(
+            "SELECT count(*)::int AS n FROM auth_codes WHERE consumed_at IS NOT NULL AND purpose = 'VERIFY_EMAIL'",
+          )
+        ).rows[0].n,
+    );
+    expect(Number(codes)).toBe(1);
+  });
+
   it('DTO shape: bad email, short password, malformed code and bad token length are 400', async () => {
     await http()
       .post('/auth/register')
