@@ -6,6 +6,9 @@ export const RESEND_COOLDOWN_SECONDS = 60;
 export const DAILY_CODE_CAP = 10;
 export const SESSION_LIFETIME_DAYS = 30;
 export const ACCESS_TOKEN_SECONDS = 15 * 60;
+/** JWT contract (spec 9 + STM-11): pinned HS256 with fixed issuer and audience. */
+export const JWT_ISSUER = 'multistore-api';
+export const JWT_AUDIENCE = 'multistore-app';
 /** Design doc section 8: a refresh token lives at most 14 days and never outlives its session. */
 export const REFRESH_TOKEN_DAYS = 14;
 

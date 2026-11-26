@@ -146,7 +146,7 @@ export class AuthService {
       await this.store.markTokenRotated(tx, token.id, successor);
       return {
         tokens: {
-          accessToken: await this.signer.sign(token.userId, 'CUSTOMER'),
+          accessToken: await this.signer.sign(token.userId, 'CUSTOMER', token.sessionId),
           accessTokenExpiresIn: ACCESS_TOKEN_SECONDS,
           refreshToken: newRaw,
         },
@@ -282,7 +282,7 @@ export class AuthService {
       sessionExpiresAt: expiresAtText,
     });
     return {
-      accessToken: await this.signer.sign(user.id, 'CUSTOMER'),
+      accessToken: await this.signer.sign(user.id, 'CUSTOMER', sessionId),
       accessTokenExpiresIn: ACCESS_TOKEN_SECONDS,
       refreshToken: rawRefresh,
     };

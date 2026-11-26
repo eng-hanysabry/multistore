@@ -97,6 +97,9 @@ describe('auth flows end-to-end on real PostgreSQL + RLS (section 9)', () => {
     expect(after.verified).toBe(true);
     const payload = await new JwtService({ secret: JWT_SECRET }).verifyAsync(first.accessToken);
     expect(payload.sub).toBe(after.id);
+    expect(payload.iss).toBe('multistore-api');
+    expect(payload.aud).toBe('multistore-app');
+    expect(typeof payload.sid).toBe('string');
     expect(payload.role).toBe('CUSTOMER');
     expect(payload.exp - payload.iat).toBe(900);
     const sessionCount = () =>
