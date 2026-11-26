@@ -1,0 +1,48 @@
+# Vercel production checks, 2026-11-26T10:49:06Z
+URL: https://multistore-api-three.vercel.app (Vercel Hobby, project multistore-api, function region fra1, Node 24)
+
+## GET /health/live
+HTTP/2 200 
+content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-vercel-id: pdx1::fra1::54fbm-1795690146996-95045ca15254
+x-xss-protection: 0
+
+{"status":"ok","version":"dev"}
+
+## GET /health/ready
+HTTP/2 200 
+content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+content-type: application/json; charset=utf-8
+cross-origin-opener-policy: same-origin
+cross-origin-resource-policy: same-origin
+origin-agent-cluster: ?1
+referrer-policy: no-referrer
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-dns-prefetch-control: off
+x-download-options: noopen
+x-frame-options: SAMEORIGIN
+x-permitted-cross-domain-policies: none
+x-vercel-id: pdx1::fra1::fprj5-1795690147338-a679b802c62d
+x-xss-protection: 0
+
+{"status":"ready","database":"up","rlsCanary":"ok","mail":{"status":"OK"},"version":"dev"}
+
+## POST /internal/outbox/drain without token
+{"message":"Unauthorized","statusCode":401} [HTTP 401]
+## POST /internal/outbox/drain with wrong token
+{"message":"Unauthorized","statusCode":401} [HTTP 401]
+
+## End-to-end sweep test (12:48 EET)
+A test row was queued in Supabase (email_outbox) as multistore_app; one POST /internal/outbox/drain with the real token returned {"sent":1,"passes":2} (HTTP 200); the row then read status SENT, attempts 1, body cleared. One email 'MultiStore outbox sweep test' went to the dedicated account only.
