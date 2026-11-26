@@ -31,7 +31,7 @@ Local `npm run test:all` with real PostgreSQL 16: 11 suites, 104 tests passed; c
 
 ## Caveats and open items (honest list)
 1. **GitHub Actions sweep: secrets set, manual run verified, scheduled (cron) run NOT yet observed.** `API_BASE_URL` and `CRON_SECRET` were added on 2026-11-26 (PAT permission granted). A manual `workflow_dispatch` run succeeded with `status 200` and `{"sent":0,"passes":1}`: https://github.com/eng-hanysabry/multistore/actions/runs/45807200065. In the 30 minutes after, no `schedule` event run appeared (GitHub often delays cron on a new workflow). Automatic 5-minute retry is therefore unverified. **Status: Pending / Deferred (user decision, Telegram 21297475). Not Verified, not Completed.** Tracked in docs/DEFERRED_ISSUES.md (DI-1).
-2. Retry timing is about every 5 minutes at best; GitHub can delay scheduled runs. A login code (5 min validity, D3) that fails its immediate send may expire before the sweep; the user asks for a new code.
+2. Retry timing is about every 5 minutes at best; GitHub can delay scheduled runs. A verification or reset code (10 min validity, STM-14; the 5 min window is D3 step-up only) that fails its immediate send may still be valid at the next sweep; if it has expired, the user asks for a new code.
 3. Vercel needs `NODE_OPTIONS=--experimental-require-module` (set in the project) because Nest 12 is ESM only and the build is CommonJS. Node version is pinned to 24.x on the project. Node 24 itself is outside spec 13 (platform requirement, recorded).
 4. Prisma pinned to 6.19.3 so no `pg` adapter is needed at runtime.
 5. Vercel Hobby terms are personal, non-commercial. Re-check before commercial use. Project runs on an `*.vercel.app` URL.

@@ -22,3 +22,6 @@ Source: your Telegram messages 16993295 (IP-3 authorized, dependency decisions) 
 2. G-02 row reworded for the new host. G-03 unchanged.
 3. Section 13: v4.9.1 note (pg and @types/pg dev only, helmet, Prisma pinned 6.19.3, Node 24).
 Not edited: 10.3 SMTP text, 10.7 sleep wording, section 21 deliverable names. They describe Render and are read through 10.6a.
+
+## Post-IP-3 correction (26 Nov 2026, user decision Telegram 21319565, relayed)
+- Verification and password-reset codes expire after 10 minutes (STM-14, section 9). The 5-minute window is Super Admin step-up (D3) only. Section 10.6a 'Login codes' row corrected; IP-3 evidence caveat 2 corrected.
