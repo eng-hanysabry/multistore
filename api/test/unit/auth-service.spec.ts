@@ -120,7 +120,17 @@ class FakeStore implements AuthStore {
     }
     return Promise.resolve();
   }
+  revokeSession(_tx: TxHandle, sessionId: string, reason: string, at: Date): Promise<void> {
+    const s = this.sessions.get(sessionId);
+    if (s && s.revokedAt === null) {
+      this.sessions.set(sessionId, { ...s, revokedAt: at });
+      this.revokedWith = reason;
+      this.revokedSessionId = sessionId;
+    }
+    return Promise.resolve();
+  }
   revokedWith: string | null = null;
+  revokedSessionId: string | null = null;
   insertRefreshToken(
     _tx: TxHandle,
     row: { id: string; sessionId: string; userId: string; tokenHash: string },
@@ -302,15 +312,19 @@ describe('refresh rotation and reuse detection (section 9, STM-12)', () => {
     expect((old as { replacedById?: string }).replacedById).toBeTruthy();
     expect(store.tokens.size).toBe(2);
   });
-  it('a reused rotated token revokes the whole session', async () => {
+  it('a reused rotated token revokes only its own session (STM-12)', async () => {
     const code = await registerAndGetCode(svc, outbox);
     const first = await svc.verifyEmail({ email: 'user@example.com', code });
+    const other = await svc.login({ email: 'user@example.com', password: 'pw' });
     await svc.refresh({ refreshToken: first.refreshToken });
     await expect(svc.refresh({ refreshToken: first.refreshToken })).rejects.toThrow(
       new AuthError('TOKEN_INVALID'),
     );
     expect(store.revokedWith).toBe('REUSE_DETECTED');
-    expect(must([...store.sessions.values()][0]).revokedAt).not.toBeNull();
+    const sessions = [...store.sessions.values()];
+    expect(sessions.filter((s) => s.revokedAt !== null)).toHaveLength(1);
+    // the second login's session is unaffected
+    await expect(svc.refresh({ refreshToken: other.refreshToken })).resolves.toBeTruthy();
   });
   it('unknown or session-revoked tokens are invalid', async () => {
     await expect(svc.refresh({ refreshToken: 'nope' })).rejects.toThrow(

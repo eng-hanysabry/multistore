@@ -87,6 +87,8 @@ export interface AuthStore {
   ): Promise<string>;
   findSession(tx: TxHandle, id: string): Promise<SessionRecord | null>;
   revokeSessionsForUser(tx: TxHandle, userId: string, reason: string, at: Date): Promise<void>;
+  /** Revoke one session (reuse detection kills only the compromised session; logout kills its own). */
+  revokeSession(tx: TxHandle, sessionId: string, reason: string, at: Date): Promise<void>;
   insertRefreshToken(
     tx: TxHandle,
     row: {

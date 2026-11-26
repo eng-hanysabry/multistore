@@ -10,6 +10,7 @@ import { AuthStore, UserRecord } from '../domain/auth-store';
 import {
   ACCESS_TOKEN_SECONDS,
   codeExpiry,
+  refreshExpiry,
   CodePurpose,
   DAILY_CODE_CAP,
   MAX_CODE_ATTEMPTS,
@@ -116,13 +117,16 @@ export class AuthService {
    */
   async refresh(input: { refreshToken: string }): Promise<AuthTokens> {
     const tokenHash = sha256(input.refreshToken);
-    return this.runner.run({ role: 'GUEST', tokenHash }, async (tx) => {
+    // A detected reuse must COMMIT the session revocation, so it cannot throw inside the
+    // transaction (a throw rolls back). It returns a marker and throws after commit instead.
+    const outcome = await this.runner.run({ role: 'GUEST', tokenHash }, async (tx) => {
       const token = await this.store.findRefreshTokenByHash(tx, tokenHash);
       if (!token) throw new AuthError('TOKEN_INVALID');
       await this.store.assumeUser(tx, token.userId);
       if (token.status === 'ROTATED') {
-        await this.store.revokeSessionsForUser(tx, token.userId, 'REUSE_DETECTED', this.clock());
-        throw new AuthError('TOKEN_INVALID');
+        // STM-12 / design doc section 8: reuse kills the compromised session only.
+        await this.store.revokeSession(tx, token.sessionId, 'REUSE_DETECTED', this.clock());
+        return { reused: true as const };
       }
       const now = this.clock();
       if (token.status !== 'ACTIVE' || token.expiresAt <= now) throw new AuthError('TOKEN_INVALID');
@@ -136,16 +140,20 @@ export class AuthService {
         sessionId: token.sessionId,
         userId: token.userId,
         tokenHash: sha256(newRaw),
-        expiresAt: session.expiresAt,
+        expiresAt: refreshExpiry(now).toISOString(),
         sessionExpiresAt: session.expiresAt,
       });
       await this.store.markTokenRotated(tx, token.id, successor);
       return {
-        accessToken: await this.signer.sign(token.userId, 'CUSTOMER'),
-        accessTokenExpiresIn: ACCESS_TOKEN_SECONDS,
-        refreshToken: newRaw,
+        tokens: {
+          accessToken: await this.signer.sign(token.userId, 'CUSTOMER'),
+          accessTokenExpiresIn: ACCESS_TOKEN_SECONDS,
+          refreshToken: newRaw,
+        },
       };
     });
+    if ('reused' in outcome) throw new AuthError('TOKEN_INVALID');
+    return outcome.tokens;
   }
 
   /** Logout: revoke the session behind the presented refresh token. Always succeeds. */
@@ -155,7 +163,7 @@ export class AuthService {
       const token = await this.store.findRefreshTokenByHash(tx, tokenHash);
       if (!token) return;
       await this.store.assumeUser(tx, token.userId);
-      await this.store.revokeSessionsForUser(tx, token.userId, 'LOGOUT', this.clock());
+      await this.store.revokeSession(tx, token.sessionId, 'LOGOUT', this.clock());
     });
   }
 
@@ -270,7 +278,7 @@ export class AuthService {
       sessionId,
       userId: user.id,
       tokenHash: sha256(rawRefresh),
-      expiresAt: expiresAtText,
+      expiresAt: refreshExpiry(now).toISOString(),
       sessionExpiresAt: expiresAtText,
     });
     return {

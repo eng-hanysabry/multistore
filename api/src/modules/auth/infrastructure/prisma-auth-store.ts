@@ -44,7 +44,8 @@ export class PrismaAuthStore implements AuthStore {
   ): Promise<void> {
     await txOf(tx).$executeRaw`
       INSERT INTO auth_codes (id, user_id, purpose, code_hash, expires_at)
-      VALUES (${row.id}::uuid, ${row.userId}::uuid, ${row.purpose}, ${row.codeHash}, ${row.expiresAt})`;
+      VALUES (${row.id}::uuid, ${row.userId}::uuid, ${row.purpose}, ${row.codeHash},
+              LEAST(${row.expiresAt}::timestamptz, now() + interval '10 minutes'))`;
   }
 
   async latestAuthCode(
@@ -139,7 +140,8 @@ export class PrismaAuthStore implements AuthStore {
     // (correction A equality check); a JS Date round-trip would lose sub-millisecond digits.
     const rows = await txOf(tx).$queryRaw<{ expires_at: string }[]>`
       INSERT INTO sessions (id, user_id, expires_at)
-      VALUES (${row.id}::uuid, ${row.userId}::uuid, ${row.expiresAt})
+      VALUES (${row.id}::uuid, ${row.userId}::uuid,
+              LEAST(${row.expiresAt}::timestamptz, now() + interval '30 days'))
       RETURNING expires_at::text`;
     const text = rows[0]?.expires_at;
     if (!text) throw new Error('session insert returned no expiry');
@@ -167,6 +169,12 @@ export class PrismaAuthStore implements AuthStore {
       WHERE user_id = ${userId}::uuid AND revoked_at IS NULL`;
   }
 
+  async revokeSession(tx: TxHandle, sessionId: string, reason: string, at: Date): Promise<void> {
+    await txOf(tx).$executeRaw`
+      UPDATE sessions SET revoked_at = ${at}, revoked_reason = ${reason}
+      WHERE id = ${sessionId}::uuid AND revoked_at IS NULL`;
+  }
+
   async insertRefreshToken(
     tx: TxHandle,
     row: {
@@ -181,7 +189,8 @@ export class PrismaAuthStore implements AuthStore {
     await txOf(tx).$executeRaw`
       INSERT INTO refresh_tokens (id, session_id, user_id, token_hash, status, expires_at, session_expires_at)
       VALUES (${row.id}::uuid, ${row.sessionId}::uuid, ${row.userId}::uuid, ${row.tokenHash},
-              'ACTIVE', ${row.expiresAt}, ${row.sessionExpiresAt})`;
+              'ACTIVE', LEAST(${row.expiresAt}::timestamptz, ${row.sessionExpiresAt}::timestamptz),
+              ${row.sessionExpiresAt}::timestamptz)`;
   }
 
   async findRefreshTokenByHash(
