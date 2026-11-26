@@ -1,13 +1,5 @@
 import { Pool } from 'pg';
-import {
-  Ctx,
-  applyMigration,
-  poolAs,
-  run,
-  seedId,
-  setupDatabase,
-  superClient,
-} from './harness';
+import { Ctx, applyMigration, poolAs, run, seedId, setupDatabase, superClient } from './harness';
 
 /**
  * IP-4 identity and tenancy against real PostgreSQL (spec 6.4 policy matrix, 6.6 role and
@@ -52,14 +44,32 @@ async function seed(): Promise<void> {
     );
     await s.query(
       'INSERT INTO tenants (id, code, name, status) VALUES ($1,$2,$3,$4),($5,$6,$7,$8)',
-      [TENANT_ALPHA, 'alpha-shop', 'Alpha', 'ACTIVE', TENANT_BETA, 'beta-shop', 'Beta', 'SUSPENDED'],
+      [
+        TENANT_ALPHA,
+        'alpha-shop',
+        'Alpha',
+        'ACTIVE',
+        TENANT_BETA,
+        'beta-shop',
+        'Beta',
+        'SUSPENDED',
+      ],
     );
     await s.query(
       'INSERT INTO users (id, email, password_hash, status) VALUES ($1,$2,$3,$4),($5,$6,$7,$8),($9,$10,$11,$12)',
       [
-        USER_ACTIVE, 'user1@example.com', 'h1', 'ACTIVE',
-        USER_PENDING, 'user2@example.com', 'h2', 'PENDING_VERIFICATION',
-        USER_OTHER, 'user3@example.com', 'h3', 'ACTIVE',
+        USER_ACTIVE,
+        'user1@example.com',
+        'h1',
+        'ACTIVE',
+        USER_PENDING,
+        'user2@example.com',
+        'h2',
+        'PENDING_VERIFICATION',
+        USER_OTHER,
+        'user3@example.com',
+        'h3',
+        'ACTIVE',
       ],
     );
     await s.query(
@@ -155,31 +165,33 @@ describe('IP-4 role and privilege model (6.6)', () => {
       [NEW_TABLES],
     );
     const got = r.rows.map((x) => `${x['grantee']}:${x['table_name']}:${x['column_name']}`);
-    expect(got).toEqual([
-      'multistore_app:auth_codes:attempts',
-      'multistore_app:auth_codes:consumed_at',
-      'multistore_app:refresh_tokens:replaced_by_id',
-      'multistore_app:refresh_tokens:status',
-      'multistore_app:sessions:revoked_at',
-      'multistore_app:sessions:revoked_reason',
-      'multistore_app:users:email_verified_at',
-      'multistore_app:users:password_changed_at',
-      'multistore_app:users:password_hash',
-      'multistore_app:users:status',
-      'multistore_app:users:updated_at',
-      'multistore_admin:memberships:created_at',
-      'multistore_admin:memberships:id',
-      'multistore_admin:memberships:role',
-      'multistore_admin:memberships:status',
-      'multistore_admin:memberships:tenant_id',
-      'multistore_admin:memberships:user_id',
-      'multistore_admin:tenants:code',
-      'multistore_admin:tenants:created_at',
-      'multistore_admin:tenants:id',
-      'multistore_admin:tenants:name',
-      'multistore_admin:tenants:status',
-      'multistore_admin:tenants:updated_at',
-    ].sort());
+    expect(got).toEqual(
+      [
+        'multistore_app:auth_codes:attempts',
+        'multistore_app:auth_codes:consumed_at',
+        'multistore_app:refresh_tokens:replaced_by_id',
+        'multistore_app:refresh_tokens:status',
+        'multistore_app:sessions:revoked_at',
+        'multistore_app:sessions:revoked_reason',
+        'multistore_app:users:email_verified_at',
+        'multistore_app:users:password_changed_at',
+        'multistore_app:users:password_hash',
+        'multistore_app:users:status',
+        'multistore_app:users:updated_at',
+        'multistore_admin:memberships:created_at',
+        'multistore_admin:memberships:id',
+        'multistore_admin:memberships:role',
+        'multistore_admin:memberships:status',
+        'multistore_admin:memberships:tenant_id',
+        'multistore_admin:memberships:user_id',
+        'multistore_admin:tenants:code',
+        'multistore_admin:tenants:created_at',
+        'multistore_admin:tenants:id',
+        'multistore_admin:tenants:name',
+        'multistore_admin:tenants:status',
+        'multistore_admin:tenants:updated_at',
+      ].sort(),
+    );
     await s.end();
   });
 
@@ -216,12 +228,7 @@ describe('IP-4 role and privilege model (6.6)', () => {
          AND privilege_type='SELECT' ORDER BY 1`,
     );
     await s.end();
-    expect(cols.rows.map((x) => x['column_name'])).toEqual([
-      'created_at',
-      'email',
-      'id',
-      'status',
-    ]);
+    expect(cols.rows.map((x) => x['column_name'])).toEqual(['created_at', 'email', 'id', 'status']);
   });
 
   it('STM-19: multistore_admin is capped at 3 connections', async () => {
@@ -253,9 +260,9 @@ describe('IP-4 tenants policies (6.4)', () => {
           (await q('SELECT id FROM tenants')).rows.map((r) => r['id']),
         ),
       ).toEqual([TENANT_ALPHA]);
-      expect(
-        await blocked(app, { role, tenant: TENANT_BETA }, 'SELECT id FROM tenants'),
-      ).toBe(true);
+      expect(await blocked(app, { role, tenant: TENANT_BETA }, 'SELECT id FROM tenants')).toBe(
+        true,
+      );
     }
   });
   it('app cannot write tenants; admin can (approved minimum Phase 1)', async () => {
@@ -281,7 +288,11 @@ describe('IP-4 users policies and the sensitive-field trigger (6.4, D-S2, correc
       ),
     ).toEqual(['user1@example.com']);
     expect(
-      await blocked(app, { role: 'GUEST', loginEmail: 'nobody@example.com' }, 'SELECT id FROM users'),
+      await blocked(
+        app,
+        { role: 'GUEST', loginEmail: 'nobody@example.com' },
+        'SELECT id FROM users',
+      ),
     ).toBe(true);
     expect(await blocked(app, { role: 'GUEST' }, 'SELECT id FROM users')).toBe(true);
   });
@@ -338,7 +349,9 @@ describe('IP-4 users policies and the sensitive-field trigger (6.4, D-S2, correc
 
   it('verification flow: consume the code, then activate, in one transaction', async () => {
     await run(app, { role: 'GUEST', loginEmail: 'user2@example.com' }, async (q) => {
-      expect((await q('UPDATE auth_codes SET consumed_at=now() WHERE id=$1', [CODE_1])).rowCount).toBe(1);
+      expect(
+        (await q('UPDATE auth_codes SET consumed_at=now() WHERE id=$1', [CODE_1])).rowCount,
+      ).toBe(1);
       expect(
         (
           await q(
@@ -350,9 +363,10 @@ describe('IP-4 users policies and the sensitive-field trigger (6.4, D-S2, correc
     });
     const s = superClient();
     await s.connect();
-    const r = await s.query('SELECT status, email_verified_at IS NOT NULL AS v FROM users WHERE id=$1', [
-      USER_PENDING,
-    ]);
+    const r = await s.query(
+      'SELECT status, email_verified_at IS NOT NULL AS v FROM users WHERE id=$1',
+      [USER_PENDING],
+    );
     await s.end();
     expect(r.rows[0]).toEqual({ status: 'ACTIVE', v: true });
   });
@@ -427,7 +441,11 @@ describe('IP-4 auth_codes policies (6.4, STM-14)', () => {
       ),
     ).toEqual([CODE_1]);
     expect(
-      await blocked(app, { role: 'GUEST', loginEmail: 'user1@example.com' }, 'SELECT id FROM auth_codes'),
+      await blocked(
+        app,
+        { role: 'GUEST', loginEmail: 'user1@example.com' },
+        'SELECT id FROM auth_codes',
+      ),
     ).toBe(true);
     await run(app, { role: 'GUEST', loginEmail: 'user2@example.com' }, async (q) => {
       expect(
@@ -438,7 +456,9 @@ describe('IP-4 auth_codes policies (6.4, STM-14)', () => {
           )
         ).rowCount,
       ).toBe(1);
-      expect((await q('UPDATE auth_codes SET attempts=attempts+1 WHERE id=$1', [CODE_1])).rowCount).toBe(1);
+      expect(
+        (await q('UPDATE auth_codes SET attempts=attempts+1 WHERE id=$1', [CODE_1])).rowCount,
+      ).toBe(1);
     });
   });
   it('a code may never live longer than 10 minutes', async () => {
@@ -478,20 +498,20 @@ describe('IP-4 sessions policies (6.4, STM-12, STM-13)', () => {
     });
     await expect(
       run(app, { role: 'GUEST', loginEmail: 'user1@example.com' }, (q) =>
-        q("INSERT INTO sessions (id, user_id, expires_at) VALUES ($1,$2, now() + interval '30 days')", [
-          seedId(306),
-          USER_OTHER,
-        ]),
+        q(
+          "INSERT INTO sessions (id, user_id, expires_at) VALUES ($1,$2, now() + interval '30 days')",
+          [seedId(306), USER_OTHER],
+        ),
       ),
     ).rejects.toThrow(/row-level security/);
   });
   it('a session may not outlive the 30 day absolute lifetime', async () => {
     await expect(
       run(app, { role: 'GUEST', loginEmail: 'user1@example.com' }, (q) =>
-        q("INSERT INTO sessions (id, user_id, expires_at) VALUES ($1,$2, now() + interval '31 days')", [
-          seedId(307),
-          USER_ACTIVE,
-        ]),
+        q(
+          "INSERT INTO sessions (id, user_id, expires_at) VALUES ($1,$2, now() + interval '31 days')",
+          [seedId(307), USER_ACTIVE],
+        ),
       ),
     ).rejects.toThrow(/violates check constraint/);
   });
@@ -503,7 +523,11 @@ describe('IP-4 sessions policies (6.4, STM-12, STM-13)', () => {
       ),
     ).toEqual([SESSION_1]);
     expect(
-      await blocked(app, { role: 'GUEST', loginEmail: 'user3@example.com' }, 'SELECT id FROM sessions'),
+      await blocked(
+        app,
+        { role: 'GUEST', loginEmail: 'user3@example.com' },
+        'SELECT id FROM sessions',
+      ),
     ).toBe(true);
   });
   it('logout/reuse revocation sets revoked_at; identity columns are immutable (correction B)', async () => {
@@ -551,9 +575,9 @@ describe('IP-4 refresh_tokens policies (6.4, STM-12, correction A)', () => {
         (await q('SELECT id FROM refresh_tokens')).rows.map((r) => r['id']),
       ),
     ).toEqual([RT_1]);
-    expect(await blocked(app, { role: 'GUEST', tokenHash: 'other' }, 'SELECT id FROM refresh_tokens')).toBe(
-      true,
-    );
+    expect(
+      await blocked(app, { role: 'GUEST', tokenHash: 'other' }, 'SELECT id FROM refresh_tokens'),
+    ).toBe(true);
     await expect(
       run(app, { role: 'GUEST', tokenHash: 'tok1' }, (q) =>
         q("UPDATE refresh_tokens SET token_hash='hijacked' WHERE id=$1", [RT_1]),
