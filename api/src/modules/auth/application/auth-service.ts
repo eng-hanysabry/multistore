@@ -62,24 +62,28 @@ export class AuthService {
     const email = input.email.toLowerCase();
     const ctx: TenantContext = { role: 'GUEST', loginEmail: email };
     const passwordHash = await this.hasher.hash(input.password);
-    await this.runner.run(ctx, async (tx) => {
+    const message = await this.runner.run(ctx, async (tx) => {
       const existing = await this.store.findUserByLoginEmail(tx, email);
-      if (existing) return; // duplicate: same outward response, no code burned (8.6.8)
+      if (existing) return undefined; // duplicate: same outward response, no code burned (8.6.8)
       const userId = this.ids();
       await this.store.insertPendingUser(tx, { id: userId, email, passwordHash });
-      await this.issueCode(tx, { id: userId, email }, 'VERIFY_EMAIL');
+      return this.issueCode(tx, { id: userId, email }, 'VERIFY_EMAIL');
     });
+    // After commit, never inside the transaction: queueing uses the same Prisma pool, and
+    // a pool of one (STM-19) would deadlock against the open transaction's connection.
+    if (message) await this.outbox.queue(message);
     return { message: GENERIC_CODE_MESSAGE };
   }
 
   /** Resend the verification code. Response is always generic. */
   async resendVerificationCode(input: { email: string }): Promise<{ message: string }> {
     const email = input.email.toLowerCase();
-    await this.runner.run({ role: 'GUEST', loginEmail: email }, async (tx) => {
+    const message = await this.runner.run({ role: 'GUEST', loginEmail: email }, async (tx) => {
       const user = await this.store.findUserByLoginEmail(tx, email);
-      if (!user || user.status !== 'PENDING_VERIFICATION') return;
-      await this.issueCode(tx, user, 'VERIFY_EMAIL');
+      if (!user || user.status !== 'PENDING_VERIFICATION') return undefined;
+      return this.issueCode(tx, user, 'VERIFY_EMAIL');
     });
+    if (message) await this.outbox.queue(message);
     return { message: GENERIC_CODE_MESSAGE };
   }
 
@@ -170,11 +174,12 @@ export class AuthService {
   /** Password reset request. Response is always generic. */
   async requestPasswordReset(input: { email: string }): Promise<{ message: string }> {
     const email = input.email.toLowerCase();
-    await this.runner.run({ role: 'GUEST', loginEmail: email }, async (tx) => {
+    const message = await this.runner.run({ role: 'GUEST', loginEmail: email }, async (tx) => {
       const user = await this.store.findUserByLoginEmail(tx, email);
-      if (!user || user.status !== 'ACTIVE') return;
-      await this.issueCode(tx, user, 'RESET_PASSWORD');
+      if (!user || user.status !== 'ACTIVE') return undefined;
+      return this.issueCode(tx, user, 'RESET_PASSWORD');
     });
+    if (message) await this.outbox.queue(message);
     return { message: GENERIC_CODE_MESSAGE };
   }
 
@@ -216,12 +221,15 @@ export class AuthService {
 
   // --- internals ---
 
-  /** Cooldown + daily cap + insert + queue the email. Runs inside the caller's transaction. */
+  /**
+   * Cooldown + daily cap + insert, inside the caller's transaction. Returns the email to
+   * send; the caller queues it AFTER the transaction commits (pool-of-one safety).
+   */
   private async issueCode(
     tx: TxHandle,
     user: Pick<UserRecord, 'id' | 'email'>,
     purpose: CodePurpose,
-  ): Promise<void> {
+  ): Promise<{ to: string; subject: string; text: string }> {
     const now = this.clock();
     const latest = await this.store.latestAuthCode(tx, user.id, purpose);
     if (latest && now.getTime() - latest.createdAt.getTime() < RESEND_COOLDOWN_SECONDS * 1_000)
@@ -236,14 +244,14 @@ export class AuthService {
       codeHash: await this.hasher.hash(code),
       expiresAt: codeExpiry(now),
     });
-    await this.outbox.queue({
+    return {
       to: user.email,
       subject:
         purpose === 'VERIFY_EMAIL'
           ? 'Your MultiStore verification code'
           : 'Your MultiStore reset code',
       text: `Your code is ${code}. It expires in 10 minutes.`,
-    });
+    };
   }
 
   private async checkCode(

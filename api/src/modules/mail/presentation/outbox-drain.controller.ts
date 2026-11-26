@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
+import { Public } from '../../../common/auth/public.decorator';
 import { AppConfig } from '../../../common/config/app-config';
 import { APP_CONFIG } from '../../../common/config/config.token';
 import { OutboxWorker } from '../application/outbox-worker';
@@ -26,6 +27,8 @@ function safeEqual(a: string, b: string): boolean {
  * Scheduled retry (spec 10.3, serverless host). Not part of the public contract. Only a caller
  * holding CRON_SECRET may run it; the response carries counts only, never message data.
  */
+// @Public(): it authenticates with CRON_SECRET below, not with a user JWT.
+@Public()
 @Controller('internal/outbox')
 @ApiExcludeController()
 export class OutboxDrainController {

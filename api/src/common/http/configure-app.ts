@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 
 interface Req {
@@ -16,6 +16,10 @@ export const REQUEST_TIMEOUT_MS = 15_000; // 10.7: HTTP request timeout, then 50
 /** Cross-cutting HTTP setup: secure headers (D1, helmet) and the 15 s request timeout (10.7). */
 export function configureApp(app: INestApplication, requestTimeoutMs = REQUEST_TIMEOUT_MS): void {
   app.use(helmet());
+  // Spec 5.4: DTO whitelist; unknown fields (including any tenant value outside the URL) rejected.
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+  );
   app.use((_req: Req, res: Res, next: () => void) => {
     const timer = setTimeout(() => {
       if (!res.headersSent) {

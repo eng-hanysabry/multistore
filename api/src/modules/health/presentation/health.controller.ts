@@ -1,4 +1,5 @@
 import { Controller, Get, Inject, Res } from '@nestjs/common';
+import { Public } from '../../../common/auth/public.decorator';
 import { HealthService } from '../application/health.service';
 
 interface ResponseLike {
@@ -6,6 +7,7 @@ interface ResponseLike {
   setHeader(name: string, value: string): unknown;
 }
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(@Inject(HealthService) private readonly health: HealthService) {}
