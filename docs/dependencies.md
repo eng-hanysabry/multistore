@@ -25,3 +25,6 @@ Not yet added (later phases): @nestjs/jwt, passport, throttler, argon2, sharp, h
 | flutter_lints | lints (8.5) | listed |
 | mocktail (dev) | test mocks (4.4) | listed |
 Not yet added: go_router, dio, flutter_secure_storage, shared_preferences, cached_network_image, riverpod_lint.
+
+## IP-3 hosting change (26 Nov 2026)
+No new package. Vercel needs none (zero-config NestJS). `api/package.json` gains a `postinstall` script (`prisma generate`) and the Prisma schema adds the `rhel-openssl-3.0.x` binary target for the Vercel runtime. Node 24 stays required.

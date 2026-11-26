@@ -14,3 +14,11 @@ Source: instruction relayed by the main agent on 25 Nov 2026 as the user's Teleg
 Not changed: all decisions and approvals, other checklist items, the test status register (section 23) totals, the `gen_random_uuid` spike-only note stays only in the spike code (5.6 already forbids DB-side defaults).
 
 3. **Decision register updated (section 17):** D1 to D6 and P-1 to P-4 now show your approved IP-0 decisions (25 Nov 2026, Telegram 16854956): D1 A helmet; D2 A with D2a; D3 A 5 minutes; D4 90 days; D5 A; D6 A; P-1 approved with Phone, WhatsApp, Email; P-2 option B; P-3 approved; P-4 phase by phase. The 17.1 and 17.2 tables, the status vocabulary and the matching checklist row changed. Other sections were not rewritten; section 17 is the current status where they still say recommended or proposed.
+
+
+## v4.9.1 (IP-3, 26 Nov 2026, docs only)
+Source: your Telegram messages 16993295 (IP-3 authorized, dependency decisions) and 20663749 (option B), both relayed by the main agent, not seen by me directly.
+1. New 10.6a: hosting moves from Render Free to Vercel Hobby plus GitHub Actions, no card. Immediate send on queue and a scheduled retry about every 5 minutes replace the always-on in-process worker on this host (`OUTBOX_MODE=sweep`). The in-process loop stays the default for always-on hosts.
+2. G-02 row reworded for the new host. G-03 unchanged.
+3. Section 13: v4.9.1 note (pg and @types/pg dev only, helmet, Prisma pinned 6.19.3, Node 24).
+Not edited: 10.3 SMTP text, 10.7 sleep wording, section 21 deliverable names. They describe Render and are read through 10.6a.

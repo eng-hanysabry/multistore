@@ -16,6 +16,14 @@ export interface AppConfig {
   readonly jwtSecret: string;
   /** Present only when every Gmail variable is set. Without it mail reports DEGRADED (not_configured). */
   readonly gmail: GmailConfig | undefined;
+  /**
+   * 'loop': an in-process worker polls the outbox (always-on host).
+   * 'sweep': no background loop (serverless host); mail is sent right after it is queued and an
+   * authenticated scheduled request to /internal/outbox/drain retries what is still pending.
+   */
+  readonly outboxMode: 'loop' | 'sweep';
+  /** Bearer secret for /internal/outbox/drain. Required in sweep mode. */
+  readonly cronSecret: string | undefined;
 }
 
 export interface GmailConfig {
@@ -100,6 +108,14 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     };
   }
 
+  const mode = env['OUTBOX_MODE'] ?? 'loop';
+  if (mode !== 'loop' && mode !== 'sweep') problems.push('OUTBOX_MODE must be loop or sweep');
+  const cron = env['CRON_SECRET'] || undefined;
+  if (cron !== undefined && cron.length < 32)
+    problems.push('CRON_SECRET must be at least 32 characters');
+  if (mode === 'sweep' && cron === undefined)
+    problems.push('CRON_SECRET is required when OUTBOX_MODE=sweep');
+
   if (problems.length > 0) throw new ConfigError(problems);
   return {
     nodeEnv: nodeEnv as AppConfig['nodeEnv'],
@@ -108,6 +124,8 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     adminDatabaseUrl: adminRaw || undefined,
     jwtSecret: jwt as string,
     gmail,
+    outboxMode: mode as AppConfig['outboxMode'],
+    cronSecret: cron,
   };
 }
 
@@ -119,6 +137,8 @@ export function describeConfig(cfg: AppConfig): Record<string, unknown> {
     databaseUrl: safeDatabaseUrl(cfg.databaseUrl),
     adminDatabaseUrl: cfg.adminDatabaseUrl ? safeDatabaseUrl(cfg.adminDatabaseUrl) : undefined,
     jwtSecret: cfg.jwtSecret,
+    outboxMode: cfg.outboxMode,
+    cronSecret: cfg.cronSecret,
     gmailConfigured: cfg.gmail !== undefined,
     gmailAccount: cfg.gmail ? '[set]' : undefined,
   }) as Record<string, unknown>;

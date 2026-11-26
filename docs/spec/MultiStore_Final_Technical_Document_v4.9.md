@@ -1319,7 +1319,24 @@ Its built-in mail service is limited to 2 emails per hour (https://supabase.com/
 
 On GitHub Free, private repositories get **$12 per month of included compute**, shown in dollars, not minutes. Public repositories are free on standard runners. Source: https://docs.github.com/en/billing/reference/product-usage-included and https://docs.github.com/en/actions/concepts/billing-and-usage. I did not verify the per-minute rate, so I cannot give an exact minutes figure. Mitigation: path filters (section 3), caching, and the budget setting “stop usage when budget limit is reached” so it can never bill you. A public repository is the other option, if the code can be public.
 
-### 10.6 Free API hosting (decided: Render Free web service)
+### 10.6a Hosting amendment A-IP3 (26 Nov 2026): Vercel Hobby plus GitHub Actions (supersedes the Render Free choice for the pilot)
+
+**Why.** Render Free (10.6) and every always-on free host checked on 26 Nov 2026 asked for a bank card at account or API level. You decided on 26 Nov 2026 (Telegram message 20663749, relayed by the main agent) to keep the no-card rule and approved option B: **Vercel Hobby** for the API and **GitHub Actions** as the scheduled retry. This section replaces 10.6 for hosting wherever they differ. Everything else in 10.6 and 10.7 about Supabase, secrets and failure handling stands.
+
+| Topic | Decision |
+|---|---|
+| API host | Vercel Hobby (free, no card). The NestJS app runs as one Vercel Function (Fluid compute), region fra1 (next to Supabase eu-central-1). Database stays on Supabase through the transaction pooler as `multistore_app`. |
+| Always-on worker | **Not available.** The in-process polling loop of 10.7 is disabled with `OUTBOX_MODE=sweep`. It stays the default (`loop`) for any always-on host. |
+| Outbox, immediate send | Features queue mail through `OutboxService.queue`. The row is written to `email_outbox` first, then one send attempt runs inside the same request (up to 8 s). A failed or slow attempt never fails the caller; the row stays pending. |
+| Outbox, scheduled retry | A GitHub Actions workflow (`.github/workflows/outbox-sweep.yml`, free on public repositories) calls `POST /internal/outbox/drain` about every 5 minutes with `Authorization: Bearer CRON_SECRET`. GitHub may delay scheduled runs under load, so retry timing is "about every 5 minutes", not exact. The endpoint returns counts only, is not in the OpenAPI contract, returns 404 when `CRON_SECRET` is not set and 401 for a wrong token. |
+| Crash and restart safety | Unchanged: rows stay in PostgreSQL, `SENDING` rows with an expired lease are taken over by the next attempt. |
+| Login codes | A code (valid 5 minutes, decision D3) relies on the immediate send. If that attempt fails, the next sweep can arrive after the code expired; the user asks for a new code. This is an accepted limit of a no-card host. |
+| Cold start | Serverless cold start is short (seconds), not Render's one minute. First request after idle also opens a fresh database connection. |
+| Health (G-02) | Vercel Hobby has no platform health-check path setting and does not restart a function for failing checks. `/health/live` and `/health/ready` are verified from outside (the sweep workflow and manual checks). The external-monitor fallback named in gate 2 is therefore the design. Readiness stays 503 when the database is down and liveness stays 200. |
+| Limits | Vercel Hobby is for personal, non-commercial use; function duration max 300 s; Hobby cron is once per day only, which is why GitHub Actions is used. Re-check the Hobby terms before any commercial use. |
+| Paid dependencies | None. No card on Vercel, GitHub, Supabase or Google. |
+
+### 10.6 Free API hosting (decided: Render Free web service; hosting superseded by 10.6a)
 
 You selected **Render Free** from the written comparison (24 Nov 2026), with **no bank card** on any service. Render’s stated purpose for free instances is testing and hobby projects, not production, which fits a pilot.
 
@@ -1431,6 +1448,8 @@ No Flutter code generation (freezed, json_serializable, riverpod_generator) in P
 No interface for a class that has one implementation and no likely second one. Ports exist where replacement is likely: storage, mail, repositories (for testing). No second state management library and no custom DI container.
 
 ## 13. Dependencies
+
+**v4.9.1 note (IP-3, 26 Nov 2026, approved by you):** `pg` and `@types/pg` are approved as devDependencies only (RLS Jest tests). `helmet` 8 is added (D1 A). `prisma` and `@prisma/client` are pinned to 6.19.3 on purpose (Prisma 7 needs a `pg` driver adapter at runtime, which is not approved). `googleapis` is imported by its Gmail path only. `supertest` and `@types/supertest` are dev only. Node 24 is required (Nest 12 is ESM only); this is a platform requirement, not a package. Vercel needs no new package. Everything else below is unchanged.
 
 **v4.8 note:** no dependency is added by v4.8. Possible additions that depend on OPEN decisions are listed here so they are not added silently: `helmet` (D1, option A), an authenticator-code library (D3, option C), a Markdown or HTML library (D6, options B and C). None is approved.
 
@@ -1845,7 +1864,7 @@ This section turns 8.9 and 16.1 into gates with evidence rules, defines backup a
 | Gate | Source | Blocks | Required evidence | Status |
 |---|---|---|---|---|
 | G-01 | Validation gate 1 (16.1): Supabase accepts the NOBYPASSRLS role and grants and it works through the pooler | IP-2 start | V-01 spike report with the role query result and pooler test | **PASSED** (IP-1, 25 Nov 2026; Supabase PostgreSQL 17.12; evidence: `V01_pooler_report.md`, `out_nullif.txt`; recorded as passed by your decision) |
-| G-02 | Validation gate 2: Render Free health check path can be set | IP-3 exit | V-06 record; if not supported, the external monitor on `/health/ready` is configured | OPEN |
+| G-02 | Validation gate 2: health check path (Render Free asked for a card; host changed to Vercel Hobby, 10.6a) | IP-3 exit | V-06 record: Vercel Hobby has no health-check path setting, so the external monitor on `/health/live` and `/health/ready` is the design; live results in the IP-3 evidence | OPEN (closes with the IP-3 evidence review) |
 | G-03 | Validation gate 3: Supabase Free pause behavior | IP-3 exit, then watched | V-06 record of pause trigger, restore steps and what the first user sees | OPEN |
 | G-04 | P0 Tenant isolation (application and RLS), 8.9 | Any production release | 6.4 matrix and 8.3 suite passed, including the RLS-only rerun | OPEN |
 | G-05 | P0 BOLA and IDOR, STM-01 to STM-05 | Any production release | Cross-tenant and cross-user object tests passed | OPEN |
