@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaTenantTransactionRunner } from '../../src/modules/tenancy/infrastructure/prisma-tenant-transaction-runner';
-import { TenantContext } from '../../src/modules/tenancy/domain/tenant-context';
+import { PrismaTenantTransactionRunner } from '../../src/infrastructure/prisma/tenant-transaction-runner';
+import { TenantContext } from '../../src/common/tenancy/tenant-context';
 import { applyMigration, appDatabaseUrl, seedId, setupDatabase, superClient } from './harness';
 
 /**

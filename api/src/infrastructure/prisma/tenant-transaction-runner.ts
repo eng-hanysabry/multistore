@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { assertTenantContext, TenantContext } from '../domain/tenant-context';
-import { TenantTransactionRunner, TxHandle } from '../domain/tenant-transaction-runner';
+import { assertTenantContext, TenantContext } from '../../common/tenancy/tenant-context';
+import { TenantTransactionRunner, TxHandle } from '../../common/tenancy/tenant-transaction-runner';
 
 export class PrismaTenantTransactionRunner implements TenantTransactionRunner {
   constructor(private readonly db: PrismaClient) {}

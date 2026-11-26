@@ -2,7 +2,7 @@ import {
   APP_ROLES,
   assertTenantContext,
   InvalidTenantContextError,
-} from '../../src/modules/tenancy/domain/tenant-context';
+} from '../../src/common/tenancy/tenant-context';
 
 const UUID_1 = '11111111-1111-4111-8111-111111111111';
 
