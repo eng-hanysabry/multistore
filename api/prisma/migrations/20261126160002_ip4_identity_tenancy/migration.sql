@@ -143,14 +143,27 @@ ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log FORCE ROW LEVEL SECURITY;
 
 REVOKE ALL ON tenants, users, memberships, auth_codes, sessions, refresh_tokens, audit_log
-  FROM PUBLIC, anon, authenticated, service_role;
+  FROM PUBLIC;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE multistore_owner IN SCHEMA public
-  REVOKE ALL ON TABLES FROM PUBLIC, anon, authenticated, service_role;
+  REVOKE ALL ON TABLES FROM PUBLIC;
 ALTER DEFAULT PRIVILEGES FOR ROLE multistore_owner IN SCHEMA public
-  REVOKE ALL ON SEQUENCES FROM PUBLIC, anon, authenticated, service_role;
+  REVOKE ALL ON SEQUENCES FROM PUBLIC;
 ALTER DEFAULT PRIVILEGES FOR ROLE multistore_owner IN SCHEMA public
-  REVOKE ALL ON FUNCTIONS FROM PUBLIC, anon, authenticated, service_role;
+  REVOKE ALL ON FUNCTIONS FROM PUBLIC;
+
+-- Supabase's platform roles exist on the real project but not in a vanilla CI database:
+-- revoke per existing role only, so the same migration applies in both.
+DO $rev$
+DECLARE r text;
+BEGIN
+  FOR r IN SELECT rolname FROM pg_roles WHERE rolname IN ('anon','authenticated','service_role') LOOP
+    EXECUTE format('REVOKE ALL ON tenants, users, memberships, auth_codes, sessions, refresh_tokens, audit_log FROM %I', r);
+    EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE multistore_owner IN SCHEMA public REVOKE ALL ON TABLES FROM %I', r);
+    EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE multistore_owner IN SCHEMA public REVOKE ALL ON SEQUENCES FROM %I', r);
+    EXECUTE format('ALTER DEFAULT PRIVILEGES FOR ROLE multistore_owner IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM %I', r);
+  END LOOP;
+END $rev$;
 
 -- Application role: minimum table and column rights (correction B: narrow UPDATE columns).
 GRANT SELECT ON tenants TO multistore_app;
