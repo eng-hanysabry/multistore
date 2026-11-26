@@ -1,2 +1,6 @@
 .DS_Store
 *.log
+
+# operator-script output, never commit
+gmail-refresh-token.txt
+*.session.json

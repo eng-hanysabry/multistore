@@ -55,6 +55,15 @@ export class GmailAuthorization {
     };
   }
 
+  /** Operator script only: keep a pending session between two runs of the script. */
+  exportSession(state: string): { verifier: string; expires: number } | undefined {
+    return this.sessions.get(state);
+  }
+
+  importSession(state: string, s: { verifier: string; expires: number }): void {
+    this.sessions.set(state, s);
+  }
+
   async handleCallback(p: {
     code?: string | undefined;
     state?: string | undefined;

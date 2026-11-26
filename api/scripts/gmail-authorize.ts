@@ -5,7 +5,7 @@
  * Prints the consent URL, waits for Google on a loopback address, enforces the allowlist, and writes
  * the refresh token to ./gmail-refresh-token.txt (mode 0600). The token is never printed.
  */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { GmailAuthorization } from '../src/modules/gmail-oauth/application/gmail-authorization';
 import { GoogleOAuthAdapter } from '../src/modules/gmail-oauth/infrastructure/google-oauth-adapter';
@@ -39,10 +39,16 @@ async function main(): Promise<void> {
   const log = new SafeLogger();
   let result: { sub: string } | undefined;
 
+  // Paste mode (operator runs this on a machine whose browser cannot reach it): the redirected
+  // address is pasted into PASTE_FILE instead of a loopback listener.
+  const pasteFile = process.env['PASTE_FILE'];
   const server = createServer();
-  await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
-  const addr = server.address();
-  const port = typeof addr === 'object' && addr ? addr.port : 0;
+  let port = 8765;
+  if (!pasteFile) {
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+    const addr = server.address();
+    port = typeof addr === 'object' && addr ? addr.port : 0;
+  }
   const redirectUri = `http://127.0.0.1:${port}/callback`;
 
   const auth = new GmailAuthorization(
@@ -57,9 +63,41 @@ async function main(): Promise<void> {
     { allowedAccount: allowed, ...(pinned ? { pinnedSub: pinned } : {}), redirectUri },
     log,
   );
-  const { url } = auth.begin();
-  console.log('Open this address in a browser signed in as the dedicated Gmail account:\n');
-  console.log(url);
+  const sessionFile = `${pasteFile ?? 'oauth'}.session.json`;
+  let begun: { url: string; state: string } | undefined;
+  if (pasteFile && existsSync(sessionFile)) {
+    const saved = JSON.parse(readFileSync(sessionFile, 'utf8')) as {
+      state: string;
+      verifier: string;
+      expires: number;
+    };
+    auth.importSession(saved.state, saved);
+  } else {
+    begun = auth.begin();
+    if (pasteFile) {
+      writeFileSync(
+        sessionFile,
+        JSON.stringify({ state: begun.state, ...auth.exportSession(begun.state) }),
+        { mode: 0o600 },
+      );
+    }
+    console.log('Open this address in a browser signed in as the dedicated Gmail account:\n');
+    console.log(begun.url);
+    if (pasteFile) return; // run again with the pasted address in PASTE_FILE
+  }
+
+  if (pasteFile) {
+    if (!existsSync(pasteFile)) throw new Error('paste the redirected address into PASTE_FILE');
+    const u = new URL(readFileSync(pasteFile, 'utf8').trim());
+    const o = await auth.handleCallback({
+      code: u.searchParams.get('code') ?? undefined,
+      state: u.searchParams.get('state') ?? undefined,
+      error: u.searchParams.get('error') ?? undefined,
+    });
+    console.log(o.ok ? `Accepted. Token saved to ${OUT_FILE}.` : `Rejected (${o.reason}).`);
+    if (o.ok) console.log(`Google account id (sub, not a secret): ${o.sub}`);
+    return;
+  }
 
   await new Promise<void>((resolve) => {
     server.on('request', (req, res) => {
