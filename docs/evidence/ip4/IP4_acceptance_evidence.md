@@ -39,6 +39,12 @@ Local sandbox PostgreSQL 16.2 (pgserver), roles `multistore_owner`, `multistore_
 - Covered at the database level now: STM-09 (tenancy isolation on the new tables), STM-12/13/14 database mechanics (session issue/revoke, rotation order and reuse containment, code expiry and consumption), STM-19 (admin connection cap), STM-20 (migration lint, 0 violations), 6.4 matrix and 6.6 privilege model for the 7 new tables.
 - **Not covered yet:** the API-level parts of STM-01..STM-20 (HTTP endpoints, DTOs, guards, Argon2 hashing in the modules, outbox integration for codes). Those need checklist steps 5–7 (Prisma schema, tenant runner, auth modules), which are the next approved steps in order. Nothing about them is claimed here.
 
+## Commits and CI
+- `a932cf5` IP-4 step 4: migration + suites + doc v3 + this evidence file.
+- `caa70ff` style: prettier (first CI run 45837146266 failed format:check only).
+- `c23e6d1` fix: conditional revokes for Supabase platform roles (second CI run 45837400846 failed at the test step because CI's vanilla postgres:16 has no anon/authenticated/service_role roles; revokes are now per-existing-role; verified locally in both shapes).
+- CI: https://github.com/eng-hanysabry/multistore/actions/runs/45837833023 — **success** on `c23e6d1` (lint, format, typecheck, migration lint, contract check, 139 tests with coverage gate).
+
 ## Security Gates
 All gates remain **OPEN**. This document is evidence for your review, not a closure request.
 
