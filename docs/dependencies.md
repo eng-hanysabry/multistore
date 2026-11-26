@@ -13,7 +13,9 @@
 | prisma, @prisma/client (**6.19.3**) | runtime database access and the email outbox store. Pinned to 6.x on purpose: Prisma 7 and later need a driver adapter that pulls `pg` into the runtime, which you approved for tests only | listed |
 | googleapis | Gmail API sender (`gmail_v1` only, imported from `googleapis/build/src/apis/gmail/v1` so the type checker does not load all 400 Google APIs). `google-auth-library` is imported directly: it is a transitive dependency of googleapis | listed |
 | supertest, @types/supertest (dev) | HTTP tests for the health endpoints and headers | listed |
-Not yet added (later phases): @nestjs/jwt, passport, throttler, argon2, sharp, husky.
+| argon2 (IP-4) | Argon2id hashing of passwords and verification/reset codes (spec 9, 13). Native binary; prebuilt linux-x64 included. | **Approved by you for IP-4, 26 Nov 2026 (Telegram 21341113)**; listed in spec 13 |
+| @nestjs/jwt (IP-4) | access and refresh token signing and verification (spec 9, 13). Brings `jsonwebtoken` and small helper packages transitively. | **Approved by you for IP-4, 26 Nov 2026 (Telegram 21341113)**; listed in spec 13 |
+Not added, by your decision: passport, @nestjs/passport, passport-jwt, @nestjs/throttler. Not yet added (later phases): sharp, husky.
 
 **Runtime:** Node 24 (`.nvmrc`, `engines`). Nest 12 ships ESM only. Jest runs with `--experimental-vm-modules`, which needs Node 24; Render uses `NODE_VERSION=24`. This is not in spec 13.
 ## App (`app/pubspec.yaml`)
