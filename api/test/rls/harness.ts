@@ -88,6 +88,9 @@ export interface Ctx {
   role?: string;
   tenant?: string;
   user?: string;
+  tenantCode?: string;
+  loginEmail?: string;
+  tokenHash?: string;
 }
 
 /** The transaction runner shape from spec 6.3: context set locally, in the same transaction as the query. */
@@ -110,6 +113,12 @@ export async function run<T>(
       await client.query("SELECT set_config('app.tenant_id', $1, true)", [ctx.tenant]);
     if (ctx.user !== undefined)
       await client.query("SELECT set_config('app.user_id', $1, true)", [ctx.user]);
+    if (ctx.tenantCode !== undefined)
+      await client.query("SELECT set_config('app.tenant_code', $1, true)", [ctx.tenantCode]);
+    if (ctx.loginEmail !== undefined)
+      await client.query("SELECT set_config('app.login_email', $1, true)", [ctx.loginEmail]);
+    if (ctx.tokenHash !== undefined)
+      await client.query("SELECT set_config('app.token_hash', $1, true)", [ctx.tokenHash]);
     const out = await fn((sql, p) => client.query(sql, p) as never);
     await client.query('COMMIT');
     return out;
