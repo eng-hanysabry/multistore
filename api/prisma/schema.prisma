@@ -25,3 +25,96 @@ model EmailOutbox {
 
   @@map("email_outbox")
 }
+
+// IP-4 identity and tenancy. Enums stay as String: the database CHECK constraints own the
+// allowed values (spec 6.2), and migrations do not create Prisma-managed enum types.
+
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String
+  name      String
+  status    String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("tenants")
+}
+
+model User {
+  id                String    @id @default(uuid()) @db.Uuid
+  email             String
+  passwordHash      String    @map("password_hash")
+  status            String
+  isSuperAdmin      Boolean   @default(false) @map("is_super_admin")
+  emailVerifiedAt   DateTime? @map("email_verified_at") @db.Timestamptz(6)
+  passwordChangedAt DateTime? @map("password_changed_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("users")
+}
+
+model Membership {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  role      String
+  status    String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("memberships")
+}
+
+model AuthCode {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  purpose    String
+  codeHash   String    @map("code_hash")
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(6)
+  attempts   Int       @default(0)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("auth_codes")
+}
+
+model Session {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedReason String?   @map("revoked_reason")
+
+  @@map("sessions")
+}
+
+model RefreshToken {
+  id               String   @id @default(uuid()) @db.Uuid
+  sessionId        String   @map("session_id") @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  tokenHash        String   @map("token_hash")
+  status           String
+  issuedAt         DateTime @default(now()) @map("issued_at") @db.Timestamptz(6)
+  expiresAt        DateTime @map("expires_at") @db.Timestamptz(6)
+  sessionExpiresAt DateTime @map("session_expires_at") @db.Timestamptz(6)
+  replacedById     String?  @map("replaced_by_id") @db.Uuid
+
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  occurredAt  DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  actorRole   String?  @map("actor_role")
+  action      String
+  tenantId    String?  @map("tenant_id") @db.Uuid
+  targetType  String?  @map("target_type")
+  targetId    String?  @map("target_id") @db.Uuid
+  outcome     String
+  requestId   String?  @map("request_id") @db.Uuid
+  detail      Json?
+
+  @@map("audit_log")
+}
