@@ -55,33 +55,10 @@ export async function setupDatabase(): Promise<void> {
   } finally {
     await c.end();
   }
-  const owner = poolAs('multistore_owner');
-  try {
-    await owner.query(readFileSync(join(__dirname, 'fixtures', '001_products.sql'), 'utf8'));
-  } finally {
-    await owner.end();
-  }
-  // Seed as the superuser: the owner is itself subject to FORCE RLS.
-  const s = superClient();
-  await s.connect();
-  try {
-    await s
-      .query('GRANT SELECT, INSERT, UPDATE, DELETE ON products, favorites TO CURRENT_USER')
-      .catch(() => undefined);
-    let n = 1;
-    for (const t of [TENANT_A, TENANT_B]) {
-      await s.query(
-        'INSERT INTO products (id, tenant_id, name, status) VALUES ($1,$2,$3,$4),($5,$2,$6,$7)',
-        [id(n++), t, 'pub', 'PUBLISHED', id(n++), 'draft', 'DRAFT'],
-      );
-    }
-    await s.query(
-      'INSERT INTO favorites (id, tenant_id, user_id, product_id) VALUES ($1,$2,$3,$4),($5,$2,$6,$4)',
-      [id(100), TENANT_A, USER_1, id(1), id(101), USER_2],
-    );
-  } finally {
-    await s.end();
-  }
+  // The IP-3 products/favorites fixture (fixtures/001_products.sql) is retired: the real
+  // IP-5 migration creates the products table used by RLS tests (Batch 1 authorization
+  // section 6). Each spec applies the migrations it needs and seeds its own data as the
+  // superuser, because FORCE RLS binds the owner. Favorites remain deferred to IP-6.
 }
 
 export interface Ctx {

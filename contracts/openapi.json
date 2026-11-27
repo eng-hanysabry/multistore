@@ -244,6 +244,354 @@
           "Auth"
         ]
       }
+    },
+    "/t/{tenantCode}/merchant/categories": {
+      "post": {
+        "operationId": "CatalogController_createCategory",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      },
+      "get": {
+        "operationId": "CatalogController_listCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/merchant/categories/{id}": {
+      "get": {
+        "operationId": "CatalogController_getCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      },
+      "patch": {
+        "operationId": "CatalogController_updateCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      },
+      "delete": {
+        "operationId": "CatalogController_deleteCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/merchant/categories/{id}/publish": {
+      "post": {
+        "operationId": "CatalogController_publishCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/merchant/categories/{id}/unpublish": {
+      "post": {
+        "operationId": "CatalogController_unpublishCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/merchant/products": {
+      "post": {
+        "operationId": "CatalogController_createProduct",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      },
+      "get": {
+        "operationId": "CatalogController_listProducts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/merchant/products/{id}": {
+      "get": {
+        "operationId": "CatalogController_getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      },
+      "patch": {
+        "operationId": "CatalogController_updateProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      },
+      "delete": {
+        "operationId": "CatalogController_deleteProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/merchant/products/{id}/publish": {
+      "post": {
+        "operationId": "CatalogController_publishProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/merchant/products/{id}/unpublish": {
+      "post": {
+        "operationId": "CatalogController_unpublishProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Catalog"
+        ]
+      }
     }
   },
   "info": {
@@ -285,6 +633,22 @@
         "properties": {}
       },
       "ChangePasswordDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateProductDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateProductDto": {
         "type": "object",
         "properties": {}
       }

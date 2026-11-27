@@ -8,16 +8,19 @@ import { HealthService } from '../src/modules/health/application/health.service'
 import { HealthController } from '../src/modules/health/presentation/health.controller';
 import { AuthService } from '../src/modules/auth/application/auth-service';
 import { AuthController } from '../src/modules/auth/presentation/auth.controller';
+import { CatalogService } from '../src/modules/catalog/application/catalog-service';
+import { CatalogController } from '../src/modules/catalog/presentation/catalog.controller';
 
 /**
  * The contract is built from controllers only, with stub providers, so it needs no database, no
  * environment and no network. Every new controller is added to this list.
  */
 @Module({
-  controllers: [HealthController, AuthController],
+  controllers: [HealthController, AuthController, CatalogController],
   providers: [
     { provide: HealthService, useValue: {} },
     { provide: AuthService, useValue: {} },
+    { provide: CatalogService, useValue: {} },
   ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class -- Nest module marker

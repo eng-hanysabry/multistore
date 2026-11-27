@@ -5,12 +5,39 @@ import {
   TENANT_B,
   USER_1,
   USER_2,
+  applyMigration,
   poolAs,
   run,
   seedId,
   setupDatabase,
   superClient,
 } from './harness';
+
+/**
+ * Spec 6.4 policy matrix against the REAL IP-4 + IP-5 migrations (Batch 1 authorization
+ * section 6): the old IP-3 fixture products/favorites tables are retired; the products
+ * table here is created by the IP-5 migration. Favorites coverage is deferred to IP-6.
+ * Seeds run as the superuser because FORCE RLS binds the owner. Published products are
+ * seeded through the real lifecycle (DRAFT insert, ACTIVE image, then publish) so the
+ * products_publish_guard trigger sees valid state.
+ */
+
+const MEDIA_PUB_A = seedId(50);
+const MEDIA_PUB_B = seedId(51);
+
+const ALL_TENANT_TABLES = [
+  'audit_log',
+  'auth_codes',
+  'categories',
+  'idempotency_keys',
+  'media_assets',
+  'memberships',
+  'products',
+  'refresh_tokens',
+  'sessions',
+  'tenants',
+  'users',
+];
 
 let app: Pool;
 let admin: Pool;
@@ -31,7 +58,9 @@ const denied = async (pool: Pool, ctx: Ctx, sql: string, p: unknown[]): Promise<
   }
 };
 const INS =
-  "INSERT INTO products (id, tenant_id, name, status) VALUES ('99999999-9999-4999-8999-999999999999', $1, 'x', 'PUBLISHED')";
+  "INSERT INTO products (id, tenant_id, name, status, created_by) VALUES ('99999999-9999-4999-8999-999999999999', $1, 'x', 'DRAFT', '" +
+  USER_1 +
+  "')";
 const UPD = "UPDATE products SET name = 'z' WHERE tenant_id = $1";
 const DEL = 'DELETE FROM products WHERE tenant_id = $1';
 const fails = async (pool: Pool, sql: string): Promise<boolean> => {
@@ -43,8 +72,53 @@ const fails = async (pool: Pool, sql: string): Promise<boolean> => {
   }
 };
 
+async function seed(): Promise<void> {
+  // Seed as the superuser: the owner is itself subject to FORCE RLS. The publish guard
+  // trigger runs for the superuser too, so published products are seeded through the
+  // real lifecycle: DRAFT insert, ACTIVE PRODUCT_IMAGE, then publish.
+  const s = superClient();
+  await s.connect();
+  try {
+    await s.query(
+      "INSERT INTO users (id, email, password_hash, status) VALUES ($1,'m1@example.com','h','ACTIVE'),($2,'m2@example.com','h','ACTIVE')",
+      [USER_1, USER_2],
+    );
+    let n = 1;
+    for (const [t, code] of [
+      [TENANT_A, 'tenant-a'],
+      [TENANT_B, 'tenant-b'],
+    ] as const) {
+      await s.query('INSERT INTO tenants (id, code, name, status) VALUES ($1,$2,$3,$4)', [
+        t,
+        code,
+        code,
+        'ACTIVE',
+      ]);
+      const pub = seedId(n++);
+      const draft = seedId(n++);
+      await s.query(
+        "INSERT INTO products (id, tenant_id, name, status, created_by) VALUES ($1,$2,'pub','DRAFT',$3),($4,$2,'draft','DRAFT',$3)",
+        [pub, t, USER_1, draft],
+      );
+      await s.query(
+        "INSERT INTO media_assets (id, tenant_id, product_id, kind, status, content_type, uploaded_by) VALUES ($1,$2,$3,'PRODUCT_IMAGE','ACTIVE','image/webp',$4)",
+        [t === TENANT_A ? MEDIA_PUB_A : MEDIA_PUB_B, t, pub, USER_1],
+      );
+      await s.query(
+        "UPDATE products SET status = 'PUBLISHED', published_at = now() WHERE id = $1",
+        [pub],
+      );
+    }
+  } finally {
+    await s.end();
+  }
+}
+
 beforeAll(async () => {
   await setupDatabase();
+  await applyMigration('20261126160002_ip4_identity_tenancy');
+  await applyMigration('20261127221500_ip5_catalog_and_media');
+  await seed();
   app = poolAs('multistore_app', 4);
   admin = poolAs('multistore_admin', 1);
   appOne = poolAs('multistore_app', 1);
@@ -73,9 +147,10 @@ describe('role attributes (6.4, 6.6)', () => {
   });
   it('RLS is enabled and forced on every tenant table', async () => {
     const r = await app.query(
-      "SELECT relname FROM pg_class WHERE relname IN ('products','favorites') AND relrowsecurity AND relforcerowsecurity ORDER BY 1",
+      `SELECT relname FROM pg_class WHERE relname = ANY($1) AND relrowsecurity AND relforcerowsecurity ORDER BY 1`,
+      [ALL_TENANT_TABLES],
     );
-    expect(r.rows.map((x) => x['relname'])).toEqual(['favorites', 'products']);
+    expect(r.rows.map((x) => x['relname'])).toEqual(ALL_TENANT_TABLES);
   });
 });
 
@@ -96,7 +171,7 @@ describe('policy matrix on products (6.4)', () => {
     expect(await names(app, ctx, TENANT_A)).toEqual(['draft', 'pub']);
     expect(await names(app, ctx, TENANT_B)).toEqual([]);
     for (const sql of [INS, UPD, DEL]) expect(await denied(app, ctx, sql, [TENANT_B])).toBe(true);
-    // allowed in own tenant (rolled back by a failing statement at the end so seed data stays)
+    // allowed in own tenant (the inserted row is DRAFT, so the delete policy allows it)
     await run(app, ctx, async (q) => {
       expect((await q(INS, [TENANT_A])).rowCount).toBe(1);
       expect(
@@ -108,6 +183,17 @@ describe('policy matrix on products (6.4)', () => {
       ).toBe(1);
     });
   });
+  it('a Merchant cannot insert a row already PUBLISHED (status is lifecycle-controlled)', async () => {
+    const ctx = { role: 'MERCHANT', tenant: TENANT_A };
+    await expect(
+      run(app, ctx, (q) =>
+        q(
+          "INSERT INTO products (id, tenant_id, name, status, published_at, created_by) VALUES ('99999999-9999-4999-8999-999999999998', $1, 'y', 'PUBLISHED', now(), $2)",
+          [TENANT_A, USER_1],
+        ),
+      ),
+    ).rejects.toThrow();
+  });
   it('WITH CHECK blocks a Merchant moving a row to another tenant', async () => {
     const ctx = { role: 'MERCHANT', tenant: TENANT_A };
     await expect(
@@ -116,26 +202,25 @@ describe('policy matrix on products (6.4)', () => {
       ),
     ).rejects.toThrow();
   });
-  it('SUPER ADMIN (multistore_admin): all tenants, all operations', async () => {
+  it('SUPER ADMIN (multistore_admin): reads all tenants, writes nothing (read-only role)', async () => {
     expect(await names(admin, {}, TENANT_A)).toEqual(['draft', 'pub']);
     expect(await names(admin, {}, TENANT_B)).toEqual(['draft', 'pub']);
     await run(admin, {}, async (q) => {
-      expect((await q(INS, [TENANT_B])).rowCount).toBe(1);
-      expect(
-        (await q("DELETE FROM products WHERE tenant_id = $1 AND name = 'x'", [TENANT_B])).rowCount,
-      ).toBe(1);
+      await expect(q(INS, [TENANT_B])).rejects.toThrow();
+      await expect(q(DEL, [TENANT_B])).rejects.toThrow();
+      await expect(q(UPD, [TENANT_B])).rejects.toThrow();
     });
   });
   it('unknown, empty and non-matching roles see zero rows', async () => {
     for (const role of ['', 'SUPER_ADMIN', 'merchant', 'GUEST '])
       expect(await names(app, { role, tenant: TENANT_A }, TENANT_A)).toEqual([]);
   });
-  it('removing admin_all leaves multistore_admin with zero rows', async () => {
-    await owner.query('ALTER POLICY admin_all ON products USING (false)');
+  it('removing the admin select policy leaves multistore_admin with zero rows', async () => {
+    await owner.query('ALTER POLICY products_admin_select ON products USING (false)');
     try {
       expect(await names(admin, {}, TENANT_A)).toEqual([]);
     } finally {
-      await owner.query('ALTER POLICY admin_all ON products USING (true)');
+      await owner.query('ALTER POLICY products_admin_select ON products USING (true)');
     }
   });
 });
@@ -165,34 +250,6 @@ describe('missing or invalid context fails closed', () => {
     await expect(
       names(app, { role: 'MERCHANT', tenant: 'not-a-uuid' }, TENANT_A),
     ).rejects.toThrow();
-  });
-  it('Customer without app.user_id sees zero personal rows', async () => {
-    const r = await run(
-      app,
-      { role: 'CUSTOMER', tenant: TENANT_A },
-      async (q) => (await q('SELECT id FROM favorites')).rows,
-    );
-    expect(r).toEqual([]);
-  });
-  it('Customer sees only own personal rows in the active tenant', async () => {
-    const mine = await run(
-      app,
-      { role: 'CUSTOMER', tenant: TENANT_A, user: USER_1 },
-      async (q) => (await q('SELECT user_id FROM favorites')).rows,
-    );
-    expect(mine).toEqual([{ user_id: USER_1 }]);
-    const other = await run(
-      app,
-      { role: 'CUSTOMER', tenant: TENANT_A, user: USER_2 },
-      async (q) => (await q('SELECT user_id FROM favorites')).rows,
-    );
-    expect(other).toEqual([{ user_id: USER_2 }]);
-    const wrongTenant = await run(
-      app,
-      { role: 'CUSTOMER', tenant: TENANT_B, user: USER_1 },
-      async (q) => (await q('SELECT 1 FROM favorites')).rows,
-    );
-    expect(wrongTenant).toEqual([]);
   });
 });
 
@@ -263,7 +320,7 @@ describe('grants and privilege separation (6.4, 6.6)', () => {
     for (const sql of [
       'ALTER TABLE products DISABLE ROW LEVEL SECURITY',
       'ALTER TABLE products NO FORCE ROW LEVEL SECURITY',
-      'DROP POLICY admin_all ON products',
+      'DROP POLICY products_admin_select ON products',
       'DROP TABLE products',
       'ALTER TABLE products OWNER TO multistore_admin',
       'GRANT multistore_owner TO multistore_admin',
@@ -281,23 +338,79 @@ describe('grants and privilege separation (6.4, 6.6)', () => {
       "SELECT count(*)::int AS n FROM pg_class c JOIN pg_roles r ON r.oid = c.relowner WHERE r.rolname = 'multistore_admin'",
     );
     const pub = await c.query(
-      "SELECT count(*)::int AS n FROM information_schema.role_table_grants WHERE grantee = 'PUBLIC' AND table_name IN ('products','favorites')",
+      "SELECT count(*)::int AS n FROM information_schema.role_table_grants WHERE grantee = 'PUBLIC' AND table_name = ANY($1)",
+      [ALL_TENANT_TABLES],
     );
     await c.end();
     expect(owns.rows[0]?.['n']).toBe(0);
     expect(pub.rows[0]?.['n']).toBe(0);
   });
-  it('multistore_app has only DML on the tables it needs (grants snapshot)', async () => {
+  it('multistore_app has exactly the approved DML grants (grants snapshot)', async () => {
     const c = superClient();
     await c.connect();
     const r = await c.query(
       "SELECT table_name, privilege_type FROM information_schema.role_table_grants WHERE grantee = 'multistore_app' ORDER BY 1, 2",
     );
     await c.end();
-    const expected = ['favorites', 'products'].flatMap((t) =>
-      ['DELETE', 'INSERT', 'SELECT', 'UPDATE'].map((p) => ({ table_name: t, privilege_type: p })),
-    );
+    const dml = (t: string): { table_name: string; privilege_type: string }[] =>
+      ['DELETE', 'INSERT', 'SELECT', 'UPDATE'].map((p) => ({ table_name: t, privilege_type: p }));
+    // Table-level view: column-level UPDATE grants (IP-4 correction B) do not appear
+    // here; they are asserted separately against column_privileges below.
+    const expected = [
+      { table_name: 'audit_log', privilege_type: 'INSERT' },
+      ...['INSERT', 'SELECT'].map((p) => ({ table_name: 'auth_codes', privilege_type: p })),
+      ...dml('categories'),
+      ...['INSERT', 'SELECT'].map((p) => ({
+        table_name: 'idempotency_keys',
+        privilege_type: p,
+      })),
+      ...dml('media_assets'),
+      { table_name: 'memberships', privilege_type: 'SELECT' },
+      ...dml('products'),
+      ...['INSERT', 'SELECT'].map((p) => ({
+        table_name: 'refresh_tokens',
+        privilege_type: p,
+      })),
+      ...['INSERT', 'SELECT'].map((p) => ({ table_name: 'sessions', privilege_type: p })),
+      { table_name: 'tenants', privilege_type: 'SELECT' },
+      ...['INSERT', 'SELECT'].map((p) => ({ table_name: 'users', privilege_type: p })),
+    ];
     expect(r.rows).toEqual(expected);
+  });
+  it('multistore_app column-level UPDATE grants are exactly the approved IP-4 set', async () => {
+    const c = superClient();
+    await c.connect();
+    const r = await c.query(
+      "SELECT table_name, column_name FROM information_schema.column_privileges WHERE grantee = 'multistore_app' AND privilege_type = 'UPDATE' AND table_name IN ('auth_codes','sessions','refresh_tokens','users') ORDER BY 1, 2",
+    );
+    await c.end();
+    expect(r.rows).toEqual([
+      { table_name: 'auth_codes', column_name: 'attempts' },
+      { table_name: 'auth_codes', column_name: 'consumed_at' },
+      { table_name: 'refresh_tokens', column_name: 'replaced_by_id' },
+      { table_name: 'refresh_tokens', column_name: 'status' },
+      { table_name: 'sessions', column_name: 'revoked_at' },
+      { table_name: 'sessions', column_name: 'revoked_reason' },
+      { table_name: 'users', column_name: 'email_verified_at' },
+      { table_name: 'users', column_name: 'password_changed_at' },
+      { table_name: 'users', column_name: 'password_hash' },
+      { table_name: 'users', column_name: 'status' },
+      { table_name: 'users', column_name: 'updated_at' },
+    ]);
+  });
+  it('multistore_admin has read-only grants on catalog/media and none on idempotency_keys', async () => {
+    const c = superClient();
+    await c.connect();
+    const r = await c.query(
+      "SELECT table_name, privilege_type FROM information_schema.role_table_grants WHERE grantee = 'multistore_admin' AND table_name = ANY($1) ORDER BY 1, 2",
+      [['categories', 'products', 'media_assets', 'idempotency_keys']],
+    );
+    await c.end();
+    expect(r.rows).toEqual([
+      { table_name: 'categories', privilege_type: 'SELECT' },
+      { table_name: 'media_assets', privilege_type: 'SELECT' },
+      { table_name: 'products', privilege_type: 'SELECT' },
+    ]);
   });
   it('a newly created table is not readable by multistore_app until a migration grants it', async () => {
     await owner.query('CREATE TABLE IF NOT EXISTS newt (id uuid PRIMARY KEY)');
@@ -307,12 +420,13 @@ describe('grants and privilege separation (6.4, 6.6)', () => {
       await owner.query('DROP TABLE newt');
     }
   });
-  it('seed ids are valid uuids with no database default on id', async () => {
+  it('seed ids are valid uuids with no database default on any id column', async () => {
     expect(seedId(1)).toMatch(/^[0-9a-f-]{36}$/);
     const c = superClient();
     await c.connect();
     const r = await c.query(
-      "SELECT count(*)::int AS n FROM information_schema.columns WHERE table_name IN ('products','favorites') AND column_name = 'id' AND column_default IS NOT NULL",
+      "SELECT count(*)::int AS n FROM information_schema.columns WHERE table_name = ANY($1) AND column_name = 'id' AND column_default IS NOT NULL",
+      [ALL_TENANT_TABLES],
     );
     await c.end();
     expect(r.rows[0]?.['n']).toBe(0);

@@ -118,3 +118,74 @@ model AuditLog {
 
   @@map("audit_log")
 }
+
+// IP-5 catalog and media. Matches migration 20261127221500_ip5_catalog_and_media exactly.
+// Ids use @default(uuid()): Prisma generates UUIDs on the CLIENT side (spec 5.6); the
+// database columns carry no default (Batch 1 PART A, STM-20 lint enforced). No relation
+// fields: IP-4 models omit them as well; persistence goes through raw queries inside the
+// tenant transaction runner, with RLS as the authorization boundary.
+
+model Category {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  name        String
+  status      String
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  createdBy   String    @map("created_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("categories")
+}
+
+model Product {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  categoryId    String?   @map("category_id") @db.Uuid
+  name          String
+  description   String?
+  priceAmount   Decimal?  @map("price_amount") @db.Decimal(14, 3)
+  priceCurrency String?   @map("price_currency") @db.Char(3)
+  status        String
+  publishedAt   DateTime? @map("published_at") @db.Timestamptz(6)
+  createdBy     String    @map("created_by") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("products")
+}
+
+model MediaAsset {
+  id               String   @id @default(uuid()) @db.Uuid
+  tenantId         String   @map("tenant_id") @db.Uuid
+  productId        String?  @map("product_id") @db.Uuid
+  kind             String
+  status           String
+  driveFileKey     String?  @map("drive_file_key")
+  originalFilename String?  @map("original_filename")
+  contentType      String   @map("content_type")
+  byteSize         Int?     @map("byte_size")
+  widthPx          Int?     @map("width_px")
+  heightPx         Int?     @map("height_px")
+  variants         Json?
+  uploadedBy       String   @map("uploaded_by") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@map("media_assets")
+}
+
+model IdempotencyKey {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  action         String
+  key            String
+  requestHash    String   @map("request_hash")
+  responseStatus Int      @map("response_status")
+  responseBody   Json     @map("response_body")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt      DateTime @map("expires_at") @db.Timestamptz(6)
+
+  @@map("idempotency_keys")
+}
