@@ -17,9 +17,11 @@ interface HttpRequestLike {
 
 /**
  * Hand-rolled JWT guard (no passport, per the approved dependency list). On @Public()
- * routes the request stays unauthenticated and the server treats it as GUEST; on every
- * other route a Bearer token must verify — signature, pinned algorithm, issuer, audience,
- * expiry and claims (STM-11). The failure response never says which check failed.
+ * routes a request without a token stays unauthenticated and the server treats it as
+ * GUEST; a @Public() request that DOES carry a Bearer token must still verify — an
+ * invalid or expired token is a 401, never a silent downgrade to Guest (IP-5 Step 4).
+ * On every other route a Bearer token must verify — signature, pinned algorithm, issuer,
+ * audience, expiry and claims (STM-11). The failure response never says which check failed.
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -34,13 +36,22 @@ export class JwtAuthGuard implements CanActivate {
       context.getClass(),
     ]);
     const req = context.switchToHttp().getRequest<HttpRequestLike & RequestSecurity>();
-    if (isPublic) return true;
 
     const header = req.headers['authorization'];
     const raw =
       typeof header === 'string' && header.startsWith('Bearer ')
         ? header.slice('Bearer '.length).trim()
         : '';
+    if (isPublic) {
+      if (!raw) return true; // anonymous Guest (6.3)
+      try {
+        req.auth = await this.verifier.verify(raw);
+      } catch {
+        throw new UnauthorizedException(toSafeError('UNAUTHENTICATED', 'Authentication required.'));
+      }
+      return true;
+    }
+
     if (!raw) {
       throw new UnauthorizedException(toSafeError('UNAUTHENTICATED', 'Authentication required.'));
     }

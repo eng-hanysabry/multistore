@@ -14,6 +14,7 @@ import {
   assertProductPublishable,
   assertProductUnpublishable,
   assertPublishableCategory,
+  assertUuidParam,
   assertValidPrice,
 } from '../../src/modules/catalog/domain/catalog-rules';
 
@@ -84,6 +85,15 @@ describe('field limits', () => {
       'VALIDATION',
     );
     expect(() => assertIdempotencyKey('x'.repeat(IDEMPOTENCY_KEY_MAX))).not.toThrow();
+  });
+});
+
+describe('assertUuidParam (STM-21 id fields)', () => {
+  it('accepts UUIDs, rejects anything else as NOT_FOUND', () => {
+    expect(() => assertUuidParam('11111111-1111-4111-8111-111111111111')).not.toThrow();
+    expect(code(() => assertUuidParam('not-a-uuid'))).toBe('NOT_FOUND');
+    expect(code(() => assertUuidParam("1' OR '1'='1"))).toBe('NOT_FOUND');
+    expect(code(() => assertUuidParam(''))).toBe('NOT_FOUND');
   });
 });
 

@@ -6,6 +6,7 @@ import {
 import { TenantContext } from '../../../common/tenancy/tenant-context';
 import { CatalogError } from '../domain/catalog-errors';
 import {
+  assertUuidParam,
   assertCategoryDeletable,
   assertCategoryName,
   assertCategoryUnpublishable,
@@ -153,6 +154,7 @@ export class CatalogService {
   }
 
   async getCategory(scope: MerchantScope, id: string): Promise<CategoryRecord> {
+    assertUuidParam(id);
     const record = await this.runner.run(this.ctx(scope), (tx) => this.categories.findById(tx, id));
     if (!record) throw new CatalogError('NOT_FOUND');
     return record;
@@ -163,6 +165,7 @@ export class CatalogService {
     id: string,
     input: { name: string },
   ): Promise<CategoryRecord> {
+    assertUuidParam(id);
     assertCategoryName(input.name);
     return this.runner.run(this.ctx(scope), async (tx) => {
       const record = await this.categories.findById(tx, id);
@@ -177,6 +180,7 @@ export class CatalogService {
     id: string,
     key?: string,
   ): Promise<MutationResult<CategoryRecord>> {
+    assertUuidParam(id);
     return this.idempotent(scope, 'category.publish', key, { id }, async (tx) => {
       const record = await this.categories.findById(tx, id);
       if (!record) throw new CatalogError('NOT_FOUND');
@@ -191,6 +195,7 @@ export class CatalogService {
   }
 
   async unpublishCategory(scope: MerchantScope, id: string): Promise<CategoryRecord> {
+    assertUuidParam(id);
     return this.runner.run(this.ctx(scope), async (tx) => {
       const record = await this.categories.findById(tx, id);
       if (!record) throw new CatalogError('NOT_FOUND');
@@ -204,6 +209,7 @@ export class CatalogService {
   }
 
   async deleteCategory(scope: MerchantScope, id: string): Promise<void> {
+    assertUuidParam(id);
     return this.runner.run(this.ctx(scope), async (tx) => {
       const record = await this.categories.findById(tx, id);
       if (!record) throw new CatalogError('NOT_FOUND');
@@ -241,6 +247,7 @@ export class CatalogService {
   }
 
   async getProduct(scope: MerchantScope, id: string): Promise<ProductRecord> {
+    assertUuidParam(id);
     const record = await this.runner.run(this.ctx(scope), (tx) => this.products.findById(tx, id));
     if (!record) throw new CatalogError('NOT_FOUND');
     return record;
@@ -252,6 +259,7 @@ export class CatalogService {
     id: string,
     input: ProductPatch,
   ): Promise<ProductRecord> {
+    assertUuidParam(id);
     if (input.name !== undefined) assertProductFields({ name: input.name });
     if (input.description !== undefined && input.description !== null)
       assertProductFields({ name: 'check', description: input.description });
@@ -285,6 +293,7 @@ export class CatalogService {
     id: string,
     key?: string,
   ): Promise<MutationResult<ProductRecord>> {
+    assertUuidParam(id);
     return this.idempotent(scope, 'product.publish', key, { id }, async (tx) => {
       const record = await this.products.findById(tx, id);
       if (!record) throw new CatalogError('NOT_FOUND');
@@ -306,6 +315,7 @@ export class CatalogService {
   }
 
   async unpublishProduct(scope: MerchantScope, id: string): Promise<ProductRecord> {
+    assertUuidParam(id);
     return this.runner.run(this.ctx(scope), async (tx) => {
       const record = await this.products.findById(tx, id);
       if (!record) throw new CatalogError('NOT_FOUND');
@@ -316,6 +326,7 @@ export class CatalogService {
   }
 
   async deleteProduct(scope: MerchantScope, id: string): Promise<void> {
+    assertUuidParam(id);
     return this.runner.run(this.ctx(scope), async (tx) => {
       const record = await this.products.findById(tx, id);
       if (!record) throw new CatalogError('NOT_FOUND');

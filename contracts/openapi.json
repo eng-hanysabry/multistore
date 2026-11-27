@@ -592,6 +592,57 @@
           "Catalog"
         ]
       }
+    },
+    "/t/{tenantCode}/categories": {
+      "get": {
+        "operationId": "PublicCatalogController_listCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PublicCatalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/products": {
+      "get": {
+        "operationId": "PublicCatalogController_listProducts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PublicCatalog"
+        ]
+      }
+    },
+    "/t/{tenantCode}/products/{id}": {
+      "get": {
+        "operationId": "PublicCatalogController_getProduct",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PublicCatalog"
+        ]
+      }
     }
   },
   "info": {

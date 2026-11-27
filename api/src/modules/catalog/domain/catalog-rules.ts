@@ -18,6 +18,16 @@ export const PRODUCT_DESCRIPTION_MAX = 5000;
 export const IDEMPOTENCY_KEY_MAX = 128;
 
 const CURRENCY = /^[A-Z]{3}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * STM-21: a path id that is not a UUID can never name a row. Reject it with the same
+ * NOT_FOUND as a nonexistent id so malformed input never reaches a SQL cast (which
+ * would surface as a 500).
+ */
+export function assertUuidParam(id: string): void {
+  if (!UUID.test(id)) throw new CatalogError('NOT_FOUND');
+}
 
 export interface PriceInput {
   readonly priceAmount?: number | null;
