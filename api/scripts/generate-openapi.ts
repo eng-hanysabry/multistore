@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Module } from '@nestjs/common';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_CONFIG } from '../src/common/config/config.token';
 import { HealthService } from '../src/modules/health/application/health.service';
 import { HealthController } from '../src/modules/health/presentation/health.controller';
 import { AuthService } from '../src/modules/auth/application/auth-service';
@@ -21,6 +23,11 @@ import { MediaImageController } from '../src/modules/media/presentation/media-im
  * environment and no network. Every new controller is added to this list.
  */
 @Module({
+  imports: [
+    // PublicCatalogController's G-12 throttler guard is instantiated here too; the
+    // values are inert because the contract app never serves a request.
+    ThrottlerModule.forRoot({ throttlers: [{ ttl: 60_000, limit: 60 }] }),
+  ],
   controllers: [
     HealthController,
     AuthController,
@@ -35,6 +42,7 @@ import { MediaImageController } from '../src/modules/media/presentation/media-im
     { provide: CatalogService, useValue: {} },
     { provide: PublicCatalogService, useValue: {} },
     { provide: MediaService, useValue: {} },
+    { provide: APP_CONFIG, useValue: { publicRateLimit: { trustedProxy: 'none' } } },
   ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class -- Nest module marker

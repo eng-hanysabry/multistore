@@ -32,6 +32,22 @@ export interface AppConfig {
   readonly storageProvider: 'local' | 'drive';
   /** Present only when STORAGE_PROVIDER=drive; all values are secrets except folderId. */
   readonly drive: DriveConfig | undefined;
+  /**
+   * G-12 public catalog rate limiting (IP-5 Step 9). `limit` requests per `ttlMs`
+   * milliseconds per client IP per endpoint, tracked in memory by @nestjs/throttler.
+   * `trustedProxy`: 'none' (default; local, tests, and any deployment where the API
+   * origin is reachable directly) tracks the socket IP and ignores every client-sent
+   * forwarded header. 'vercel' trusts only the leftmost value of x-vercel-forwarded-for,
+   * which Vercel overwrites at its edge; it is valid only while the origin cannot be
+   * reached except through Vercel (see docs/ip5/IP5_step9_notes.md).
+   */
+  readonly publicRateLimit: PublicRateLimitConfig;
+}
+
+export interface PublicRateLimitConfig {
+  readonly limit: number;
+  readonly ttlMs: number;
+  readonly trustedProxy: 'none' | 'vercel';
 }
 
 export interface DriveConfig {
@@ -158,6 +174,19 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
   if (mode === 'sweep' && cron === undefined)
     problems.push('CRON_SECRET is required when OUTBOX_MODE=sweep');
 
+  const rateLimitRaw = Number(env['PUBLIC_CATALOG_RATE_LIMIT'] ?? '60');
+  if (!Number.isInteger(rateLimitRaw) || rateLimitRaw < 1) {
+    problems.push('PUBLIC_CATALOG_RATE_LIMIT must be a positive integer');
+  }
+  const rateLimitTtlRaw = Number(env['PUBLIC_CATALOG_RATE_LIMIT_TTL_MS'] ?? '60000');
+  if (!Number.isInteger(rateLimitTtlRaw) || rateLimitTtlRaw < 1) {
+    problems.push('PUBLIC_CATALOG_RATE_LIMIT_TTL_MS must be a positive integer of milliseconds');
+  }
+  const trustedProxyRaw = env['PUBLIC_CATALOG_TRUSTED_PROXY'] ?? 'none';
+  if (trustedProxyRaw !== 'none' && trustedProxyRaw !== 'vercel') {
+    problems.push('PUBLIC_CATALOG_TRUSTED_PROXY must be none or vercel');
+  }
+
   if (problems.length > 0) throw new ConfigError(problems);
   return {
     nodeEnv: nodeEnv as AppConfig['nodeEnv'],
@@ -170,6 +199,11 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     cronSecret: cron,
     storageProvider: provider as AppConfig['storageProvider'],
     drive,
+    publicRateLimit: {
+      limit: rateLimitRaw,
+      ttlMs: rateLimitTtlRaw,
+      trustedProxy: trustedProxyRaw as PublicRateLimitConfig['trustedProxy'],
+    },
   };
 }
 
@@ -187,5 +221,6 @@ export function describeConfig(cfg: AppConfig): Record<string, unknown> {
     gmailAccount: cfg.gmail ? '[set]' : undefined,
     storageProvider: cfg.storageProvider,
     driveConfigured: cfg.drive !== undefined,
+    publicRateLimit: cfg.publicRateLimit,
   }) as Record<string, unknown>;
 }

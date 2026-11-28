@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Query, Req, Res, UseFilters } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res, UseFilters, UseGuards } from '@nestjs/common';
+import { ApiTooManyRequestsResponse } from '@nestjs/swagger';
 import { Public } from '../../../common/auth/public.decorator';
 import { RequestSecurity } from '../../../common/auth/request-security';
 import {
@@ -10,6 +11,8 @@ import { Page, PublicCatalogService, PublicScope } from '../application/public-c
 import { PublicCategory, PublicProduct } from '../domain/public-catalog-repository';
 import { CatalogErrorFilter } from './catalog-error.filter';
 import { PublicListQueryDto, PublicProductQueryDto } from './public-catalog.dtos';
+import { PublicCatalogThrottlerGuard } from './public-catalog-throttler.guard';
+import { ThrottlerErrorFilter } from './throttler-error.filter';
 
 interface HttpResponseLike {
   setHeader(name: string, value: string): unknown;
@@ -39,7 +42,27 @@ interface HttpRequestLike {
  */
 @Controller('t/:tenantCode')
 @Public()
-@UseFilters(CatalogErrorFilter)
+@UseFilters(CatalogErrorFilter, ThrottlerErrorFilter)
+@UseGuards(PublicCatalogThrottlerGuard)
+@ApiTooManyRequestsResponse({
+  description:
+    'Rate limit exceeded (G-12): the standard Retry-After header carries the seconds to wait before retrying.',
+  headers: {
+    'Retry-After': {
+      description: 'Seconds until the client may retry.',
+      schema: { type: 'integer', minimum: 1 },
+    },
+  },
+  schema: {
+    type: 'object',
+    properties: {
+      code: { type: 'string', example: 'RATE_LIMITED' },
+      message: { type: 'string' },
+      requestId: { type: 'string' },
+    },
+    required: ['code', 'message', 'requestId'],
+  },
+})
 export class PublicCatalogController {
   constructor(private readonly catalog: PublicCatalogService) {}
 
