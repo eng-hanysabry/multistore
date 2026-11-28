@@ -336,6 +336,15 @@ No automated cleanup job and no background retry under DI-1. Orphans are tracked
 
 Documented runbook (to be finalized at implementation): (1) snapshot `media_assets` keys/ids as multistore_owner (read-only); (2) list Drive objects under the tenant prefix; (3) diff both directions; (4) for DB-only rows, mark ORPHANED; for Drive-only objects, delete via the storage port after human confirmation; (5) record the reconciliation in the audit log. Manual, on-demand, no scheduler.
 
+**Step 8 follow-up note (28 Nov 2026; documentation only — no real reconciliation or Drive listing was performed):**
+
+- **Canonical key ↔ Drive file ID:** the provider-neutral object key (`media/{tenantId}/{assetId}/{variant}/{generation}`) is the only canonical reference and is stored in `media_assets.drive_file_key`. Inside Drive the object lives in the configured app folder with `name = key` and `appProperties.key = key`; the Drive file ID is a provider-local handle the adapter resolves by an exact `appProperties.key` query (never by filename alone) and never exposes. More than one Drive file matching the same canonical key is a corrupted mapping: the adapter raises `PROVIDER_FAILURE(conflict)` and reconciliation must resolve it manually.
+- **Two-way reconciliation:** (1) snapshot `media_assets` keys/ids as multistore_owner (read-only); (2) list Drive files in the app folder with fields `id,name,appProperties.key,size,md5Checksum,trashed` (excluding trashed), in pages, as the app account; (3) diff both directions by canonical key.
+- **Orphaned metadata (DB-only rows):** rows whose `drive_file_key` has no matching Drive object. Rows already marked ORPHANED confirm a previously failed external delete; ACTIVE rows with a missing object are broken state — mark ORPHANED and investigate before any republish.
+- **Orphaned Drive files (Drive-only objects):** objects whose `appProperties.key` matches no row. Candidates for deletion via the storage port (or the Drive UI) **after human confirmation**, per tenant prefix at a time.
+- **Metadata mismatch:** same key in both, but different byte size or md5 (Drive `md5Checksum` vs a locally computed hash of the expected bytes, or vs `media_assets.byte_size`/`variants` metadata): treat as corrupted, do not serve-rely on it; re-upload from the merchant flow after unpublish, then reconcile again.
+- **Credential hygiene during reconciliation:** use the app's own OAuth credentials from server env; never print tokens, file IDs with keys, or folder contents beyond counts and canonical keys; log output goes through the redaction sink (key-name patterns and known-secret values); no credentials in tickets, docs or the audit log.
+
 ### G.8 Access control
 
 Public (published) media is readable by GUEST/CUSTOMER per E-2; draft media is merchant-only. Media bytes are served with per-request authorization checks at the application layer; the server never proxies Drive credentials to clients.

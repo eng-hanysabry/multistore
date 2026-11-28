@@ -24,6 +24,21 @@ export interface AppConfig {
   readonly outboxMode: 'loop' | 'sweep';
   /** Bearer secret for /internal/outbox/drain. Required in sweep mode. */
   readonly cronSecret: string | undefined;
+  /**
+   * Object storage provider selection (IP-5 Step 8, B6). 'local' (default): the
+   * in-memory LocalStorageDouble for local runs and tests. 'drive': the Drive adapter,
+   * which then requires every GOOGLE_DRIVE_* variable (fail fast at boot when missing).
+   */
+  readonly storageProvider: 'local' | 'drive';
+  /** Present only when STORAGE_PROVIDER=drive; all values are secrets except folderId. */
+  readonly drive: DriveConfig | undefined;
+}
+
+export interface DriveConfig {
+  readonly folderId: string;
+  readonly clientId: string;
+  readonly clientSecret: string;
+  readonly refreshToken: string;
 }
 
 export interface GmailConfig {
@@ -108,6 +123,33 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     };
   }
 
+  const provider = env['STORAGE_PROVIDER'] ?? 'local';
+  if (provider !== 'local' && provider !== 'drive') {
+    problems.push('STORAGE_PROVIDER must be local or drive');
+  }
+  let drive: DriveConfig | undefined;
+  if (provider === 'drive') {
+    const driveVars = [
+      'GOOGLE_DRIVE_FOLDER_ID',
+      'GOOGLE_DRIVE_CLIENT_ID',
+      'GOOGLE_DRIVE_CLIENT_SECRET',
+      'GOOGLE_DRIVE_REFRESH_TOKEN',
+    ];
+    const missing = driveVars.filter((k) => !env[k]);
+    if (missing.length > 0) {
+      problems.push(
+        `STORAGE_PROVIDER=drive requires all of ${driveVars.join(', ')}; missing: ${missing.join(', ')}`,
+      );
+    } else {
+      drive = {
+        folderId: env['GOOGLE_DRIVE_FOLDER_ID'] as string,
+        clientId: env['GOOGLE_DRIVE_CLIENT_ID'] as string,
+        clientSecret: env['GOOGLE_DRIVE_CLIENT_SECRET'] as string,
+        refreshToken: env['GOOGLE_DRIVE_REFRESH_TOKEN'] as string,
+      };
+    }
+  }
+
   const mode = env['OUTBOX_MODE'] ?? 'loop';
   if (mode !== 'loop' && mode !== 'sweep') problems.push('OUTBOX_MODE must be loop or sweep');
   const cron = env['CRON_SECRET'] || undefined;
@@ -126,6 +168,8 @@ export function parseConfig(env: Record<string, string | undefined>): AppConfig 
     gmail,
     outboxMode: mode as AppConfig['outboxMode'],
     cronSecret: cron,
+    storageProvider: provider as AppConfig['storageProvider'],
+    drive,
   };
 }
 
@@ -141,5 +185,7 @@ export function describeConfig(cfg: AppConfig): Record<string, unknown> {
     cronSecret: cfg.cronSecret,
     gmailConfigured: cfg.gmail !== undefined,
     gmailAccount: cfg.gmail ? '[set]' : undefined,
+    storageProvider: cfg.storageProvider,
+    driveConfigured: cfg.drive !== undefined,
   }) as Record<string, unknown>;
 }
