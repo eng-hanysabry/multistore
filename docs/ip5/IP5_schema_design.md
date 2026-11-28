@@ -314,7 +314,7 @@ Public visibility rule (now guaranteed by construction, still checked defensivel
 
 ### G.3 Keys, variants, limits [DECISION J10]
 
-- Object keys are UUID-based: `media/{tenant_id}/{asset_uuid}/{variant}.webp`; variant ∈ {original, thumb, display}. Original filenames are metadata only.
+- Object keys are UUID-based: `media/{tenant_id}/{asset_uuid}/{variant}/{generation_uuid}`; variant ∈ {original, thumb, display} [updated per approved deviation D2, 28 Nov 2026: no `.webp` extension in keys — the StorageProvider port's `assertObjectKey` forbids dots — and a generation UUID per (re)generation implements G-4 new-keys-on-replace]. Original filenames are metadata only. Keys and `drive_file_key` are server-only; public access to an image is exclusively through the backend route of approved deviation D3: `GET /t/{tenantCode}/products/{productId}/media/{mediaId}/image?size=original|display|thumb` (`display` default).
 - Limits: intake ≤ 5 MB; processed dimensions ≤ 4000 px; derived variants thumb 256 px and display 1024 px, WebP. Actual transcode happens in Step 6 with sharp (J11); the schema stores the resulting metadata (`variants` jsonb, dimensions, byte_size, content_type).
 
 ### G.4 Replacement semantics

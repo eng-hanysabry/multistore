@@ -22,6 +22,27 @@ export interface PublicProduct {
   readonly categoryId: string | null;
   readonly publishedAt: string;
   readonly createdAt: string; // cursor column
+  /**
+   * Public image URL through the D3 route
+   * (`/t/{tenantCode}/products/{productId}/media/{mediaId}/image`), built by the service
+   * from the tenant code resolved and validated in the same request context. Points at
+   * the first eligible image (deterministic order, see PublicProductRecord) or is null
+   * when the product has none. The URL exposes only public path identifiers: never a
+   * drive_file_key, storage object key or internal path.
+   */
+  readonly imageUrl: string | null;
+}
+
+/**
+ * Internal read record: the public projection minus the derived imageUrl, plus the
+ * selected image's media id. The service turns imageMediaId into imageUrl and drops the
+ * raw field, so the serialized response can never carry an undecorated internal id.
+ * Selection is deterministic and documented: the earliest ACTIVE PRODUCT_IMAGE of the
+ * product by (created_at, id); the media RLS policy (media_public_read) restricts
+ * GUEST/CUSTOMER to exactly those rows, and the query repeats that filter explicitly.
+ */
+export interface PublicProductRecord extends Omit<PublicProduct, 'imageUrl'> {
+  readonly imageMediaId: string | null;
 }
 
 export interface PublicProductQuery {
@@ -40,6 +61,6 @@ export interface PublicProductQuery {
  */
 export interface PublicCatalogRepository {
   listPublishedCategories(tx: TxHandle, limit: number, cursor?: Cursor): Promise<PublicCategory[]>;
-  listPublishedProducts(tx: TxHandle, query: PublicProductQuery): Promise<PublicProduct[]>;
-  findPublishedProduct(tx: TxHandle, id: string): Promise<PublicProduct | null>;
+  listPublishedProducts(tx: TxHandle, query: PublicProductQuery): Promise<PublicProductRecord[]>;
+  findPublishedProduct(tx: TxHandle, id: string): Promise<PublicProductRecord | null>;
 }

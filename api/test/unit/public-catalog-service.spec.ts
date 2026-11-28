@@ -7,8 +7,8 @@ import {
 import {
   PublicCatalogRepository,
   PublicCategory,
-  PublicProduct,
   PublicProductQuery,
+  PublicProductRecord,
 } from '../../src/modules/catalog/domain/public-catalog-repository';
 import {
   Cursor,
@@ -18,12 +18,12 @@ import {
 
 const TX: TxHandle = {};
 
-const GUEST: PublicScope = { tenantId: 't-1' };
-const SIGNED: PublicScope = { tenantId: 't-1', userId: 'u-1' };
+const GUEST: PublicScope = { tenantId: 't-1', tenantCode: 'store-a' };
+const SIGNED: PublicScope = { tenantId: 't-1', tenantCode: 'store-a', userId: 'u-1' };
 
 class FakeRepo implements PublicCatalogRepository {
   categories: PublicCategory[] = [];
-  products: PublicProduct[] = [];
+  products: PublicProductRecord[] = [];
   lastQuery: PublicProductQuery | undefined;
   lastCatLimit = 0;
   lastCatCursor: Cursor | undefined;
@@ -44,11 +44,11 @@ class FakeRepo implements PublicCatalogRepository {
       : this.categories;
     return Promise.resolve(after.slice(0, limit));
   }
-  listPublishedProducts(_tx: TxHandle, query: PublicProductQuery): Promise<PublicProduct[]> {
+  listPublishedProducts(_tx: TxHandle, query: PublicProductQuery): Promise<PublicProductRecord[]> {
     this.lastQuery = query;
     return Promise.resolve(this.products.slice(0, query.limit));
   }
-  findPublishedProduct(_tx: TxHandle, id: string): Promise<PublicProduct | null> {
+  findPublishedProduct(_tx: TxHandle, id: string): Promise<PublicProductRecord | null> {
     return Promise.resolve(this.products.find((p) => p.id === id) ?? null);
   }
 }
@@ -71,7 +71,7 @@ const cat = (n: number): PublicCategory => ({
   name: `cat-${n}`,
   createdAt: `2026-11-27 00:00:${String(n).padStart(2, '0')}+00`,
 });
-const prod = (n: number): PublicProduct => ({
+const prod = (n: number, imageMediaId: string | null = null): PublicProductRecord => ({
   id: `10000000-0000-4000-8000-${String(n).padStart(12, '0')}`,
   name: `prod-${n}`,
   description: null,
@@ -80,6 +80,7 @@ const prod = (n: number): PublicProduct => ({
   categoryId: null,
   publishedAt: '2026-11-27 00:00:00+00',
   createdAt: `2026-11-27 00:00:${String(n).padStart(2, '0')}+00`,
+  imageMediaId,
 });
 
 describe('PublicCatalogService', () => {
@@ -149,5 +150,32 @@ describe('PublicCatalogService', () => {
     await expect(service.getProduct(GUEST, prod(2).id)).rejects.toMatchObject({
       code: 'NOT_FOUND',
     });
+  });
+
+  it('imageUrl: built through the D3 route with the verified tenant code, null without an image', async () => {
+    const { service, repo } = setup();
+    const mediaId = '20000000-0000-4000-8000-00000000000a';
+    repo.products = [prod(1, mediaId), prod(2)];
+    const list = await service.listProducts(GUEST, {});
+    expect(list.items[0]?.imageUrl).toBe(
+      `/t/store-a/products/${prod(1).id}/media/${mediaId}/image`,
+    );
+    expect(list.items[1]?.imageUrl).toBeNull();
+    const detail = await service.getProduct(GUEST, prod(1).id);
+    expect(detail.imageUrl).toBe(`/t/store-a/products/${prod(1).id}/media/${mediaId}/image`);
+    // the raw internal media id field never reaches the serialized projection
+    const text = JSON.stringify({ list, detail });
+    expect(text).not.toContain('imageMediaId');
+  });
+
+  it('imageUrl uses the tenant code of the request context, not another source', async () => {
+    const { service, repo } = setup();
+    const mediaId = '20000000-0000-4000-8000-00000000000b';
+    repo.products = [prod(1, mediaId)];
+    const other: PublicScope = { tenantId: 't-2', tenantCode: 'store-b' };
+    const list = await service.listProducts(other, {});
+    expect(list.items[0]?.imageUrl).toBe(
+      `/t/store-b/products/${prod(1).id}/media/${mediaId}/image`,
+    );
   });
 });

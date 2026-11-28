@@ -32,9 +32,11 @@ const PROD_A4 = seedId(6033); // 'Boots'          created 01-03 (tie)
 const PROD_A5 = seedId(6034); // 'Cap_Special'    created 01-03 (tie)
 const PROD_A_DRAFT = seedId(6035);
 const PROD_B = seedId(6036);
+const PROD_A_NOIMG = seedId(6037); // published, image removed after publish
+const PROD_A_UPLOAD = seedId(6038); // published, only an UPLOADING image left
 
-const GUEST: PublicScope = { tenantId: TENANT_A };
-const CUSTOMER: PublicScope = { tenantId: TENANT_A, userId: USER_C };
+const GUEST: PublicScope = { tenantId: TENANT_A, tenantCode: 'pub-alpha' };
+const CUSTOMER: PublicScope = { tenantId: TENANT_A, tenantCode: 'pub-alpha', userId: USER_C };
 
 let db: PrismaClient;
 let service: PublicCatalogService;
@@ -113,13 +115,43 @@ beforeAll(async () => {
     for (const [i, pid] of pubIds.entries()) {
       const tenant = pid === PROD_B ? TENANT_B : TENANT_A;
       await c.query(
-        "INSERT INTO media_assets (id, tenant_id, product_id, kind, status, content_type, uploaded_by) VALUES ($1,$2,$3,'PRODUCT_IMAGE','ACTIVE','image/webp',$4)",
+        "INSERT INTO media_assets (id, tenant_id, product_id, kind, status, content_type, uploaded_by, created_at) VALUES ($1,$2,$3,'PRODUCT_IMAGE','ACTIVE','image/webp',$4,'2026-01-10 00:00:00+00')",
         [seedId(6050 + i), tenant, pid, USER_M_A],
       );
       await c.query("UPDATE products SET status='PUBLISHED', published_at=now() WHERE id=$1", [
         pid,
       ]);
     }
+    // Blocker B fixtures. A1's image carries a drive_file_key value so the leakage scan
+    // can prove it never leaks; A4 gets a second, later ACTIVE image (earliest wins);
+    // A5 gets a second ACTIVE image with the SAME created_at (id tie-break wins).
+    await c.query("UPDATE media_assets SET drive_file_key='drv_secret_a1' WHERE id=$1", [
+      seedId(6050),
+    ]);
+    await c.query(
+      "INSERT INTO media_assets (id, tenant_id, product_id, kind, status, content_type, uploaded_by, created_at) VALUES ($1,$2,$3,'PRODUCT_IMAGE','ACTIVE','image/webp',$4,'2026-01-11 00:00:00+00')",
+      [seedId(6061), TENANT_A, PROD_A4, USER_M_A],
+    );
+    await c.query(
+      "INSERT INTO media_assets (id, tenant_id, product_id, kind, status, content_type, uploaded_by, created_at) VALUES ($1,$2,$3,'PRODUCT_IMAGE','ACTIVE','image/webp',$4,'2026-01-10 00:00:00+00')",
+      [seedId(6062), TENANT_A, PROD_A5, USER_M_A],
+    );
+    // A published product whose image is gone, and one whose image is not ACTIVE: the
+    // publish guard only fires on product writes, so the image is retracted afterwards
+    // (an ORPHANED/FAILED cleanup or a failed upload can produce exactly these states).
+    await c.query(
+      "INSERT INTO products (id, tenant_id, category_id, name, status, created_by, created_at) VALUES ($1,$2,NULL,'No Image Lamp','DRAFT',$3,'2026-01-05 00:00:00+00'),($4,$2,NULL,'Draft Image Clock','DRAFT',$3,'2026-01-06 00:00:00+00')",
+      [PROD_A_NOIMG, TENANT_A, USER_M_A, PROD_A_UPLOAD],
+    );
+    await c.query(
+      "INSERT INTO media_assets (id, tenant_id, product_id, kind, status, content_type, uploaded_by) VALUES ($1,$2,$3,'PRODUCT_IMAGE','ACTIVE','image/webp',$4),($5,$2,$6,'PRODUCT_IMAGE','ACTIVE','image/webp',$4)",
+      [seedId(6063), TENANT_A, PROD_A_NOIMG, USER_M_A, seedId(6064), PROD_A_UPLOAD],
+    );
+    await c.query("UPDATE products SET status='PUBLISHED', published_at=now() WHERE id = ANY($1)", [
+      [PROD_A_NOIMG, PROD_A_UPLOAD],
+    ]);
+    await c.query('DELETE FROM media_assets WHERE id=$1', [seedId(6063)]);
+    await c.query("UPDATE media_assets SET status='UPLOADING' WHERE id=$1", [seedId(6064)]);
   });
 }, 60_000);
 
@@ -138,6 +170,8 @@ describe('public catalog reads over real RLS (STM-04, STM-07, STM-21)', () => {
       '100% Cotton Shirt',
       'Boots',
       'Cap_Special',
+      'No Image Lamp',
+      'Draft Image Clock',
     ]);
     // the CUSTOMER context sees exactly the same published surface
     const asCustomer = await service.listProducts(CUSTOMER, {});
@@ -169,7 +203,7 @@ describe('public catalog reads over real RLS (STM-04, STM-07, STM-21)', () => {
     const backslash = await service.listProducts(GUEST, { q: '\\' });
     expect(backslash.items).toEqual([]);
     // search never crosses tenants
-    const asB: PublicScope = { tenantId: TENANT_B };
+    const asB: PublicScope = { tenantId: TENANT_B, tenantCode: 'pub-beta' };
     const bSearch = await service.listProducts(asB, { q: 'sneaker' });
     expect(bSearch.items).toEqual([]);
   });
@@ -177,14 +211,22 @@ describe('public catalog reads over real RLS (STM-04, STM-07, STM-21)', () => {
   it('cursor pagination is stable across duplicate created_at values', async () => {
     const seen: string[] = [];
     let cursor: string | undefined;
-    for (let page = 0; page < 3; page++) {
+    for (let page = 0; page < 4; page++) {
       const result = await service.listProducts(GUEST, { limit: 2, cursor });
       seen.push(...result.items.map((p) => p.id));
       cursor = result.nextCursor ?? undefined;
     }
-    expect(cursor).toBeUndefined(); // 5 items, 2 per page, 3rd page has 1 and no cursor
-    expect(seen).toEqual([PROD_A1, PROD_A2, PROD_A3, PROD_A4, PROD_A5]);
-    expect(new Set(seen).size).toBe(5); // no duplicates from the timestamp ties
+    expect(cursor).toBeUndefined(); // 7 items, 2 per page, 4th page has 1 and no cursor
+    expect(seen).toEqual([
+      PROD_A1,
+      PROD_A2,
+      PROD_A3,
+      PROD_A4,
+      PROD_A5,
+      PROD_A_NOIMG,
+      PROD_A_UPLOAD,
+    ]);
+    expect(new Set(seen).size).toBe(7); // no duplicates from the timestamp ties
   });
 
   it('categoryId filter only returns published products of a published category', async () => {
@@ -221,6 +263,37 @@ describe('public catalog reads over real RLS (STM-04, STM-07, STM-21)', () => {
     expect((await productCount()).n).toBe(before);
   });
 
+  it('imageUrl: first eligible ACTIVE image through the D3 route, null when none', async () => {
+    const url = (pid: string, mid: number): string =>
+      `/t/pub-alpha/products/${pid}/media/${seedId(mid)}/image`;
+    const products = await service.listProducts(GUEST, {});
+    const byId = new Map(products.items.map((p) => [p.id, p.imageUrl]));
+    expect(byId.get(PROD_A1)).toBe(url(PROD_A1, 6050));
+    // deterministic selection: earliest created_at wins (A4), id breaks the tie (A5)
+    expect(byId.get(PROD_A4)).toBe(url(PROD_A4, 6053));
+    expect(byId.get(PROD_A5)).toBe(url(PROD_A5, 6054));
+    // no eligible image (removed, or not ACTIVE) is null, never a guess
+    expect(byId.get(PROD_A_NOIMG)).toBeNull();
+    expect(byId.get(PROD_A_UPLOAD)).toBeNull();
+    // detail exposes the same URL; the CUSTOMER context sees exactly the guest surface
+    const detail = await service.getProduct(GUEST, PROD_A1);
+    expect(detail.imageUrl).toBe(url(PROD_A1, 6050));
+    const asCustomer = await service.listProducts(CUSTOMER, {});
+    expect(asCustomer.items.map((p) => p.imageUrl)).toEqual(products.items.map((p) => p.imageUrl));
+    // a non-ACTIVE image id and another tenant's image id never appear in the payload
+    const text = JSON.stringify(products);
+    expect(text).not.toContain(seedId(6064)); // the UPLOADING image
+    expect(text).not.toContain(seedId(6055)); // tenant B's image
+    expect(text).not.toContain(seedId(6061)); // the non-selected second image of A4
+    expect(text).not.toContain(seedId(6062)); // the non-selected second image of A5
+    // tenant B's listing renders URLs under B's own resolved code
+    const asB: PublicScope = { tenantId: TENANT_B, tenantCode: 'pub-beta' };
+    const bProducts = await service.listProducts(asB, {});
+    expect(bProducts.items[0]?.imageUrl).toBe(
+      `/t/pub-beta/products/${PROD_B}/media/${seedId(6055)}/image`,
+    );
+  });
+
   it('response projection carries no internal or storage fields (leakage scan)', async () => {
     const list = await service.listProducts(GUEST, {});
     const detail = await service.getProduct(GUEST, PROD_A1);
@@ -230,6 +303,7 @@ describe('public catalog reads over real RLS (STM-04, STM-07, STM-21)', () => {
       for (const forbidden of [
         'drive_file_key',
         'drive',
+        'drv_secret',
         'tenant_id',
         'tenantId',
         'created_by',
@@ -239,6 +313,7 @@ describe('public catalog reads over real RLS (STM-04, STM-07, STM-21)', () => {
         'UPLOADING',
         'ORPHANED',
         'media_assets',
+        'imageMediaId',
         'google',
       ]) {
         expect(text).not.toContain(forbidden);

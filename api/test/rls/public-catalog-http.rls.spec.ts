@@ -147,6 +147,16 @@ describe('public catalog endpoints over HTTP (Step 4, STM-04/07/21)', () => {
       'Alpha Two',
     ]);
     expect(products.body.nextCursor).toBeNull();
+    // Blocker B fix: every published product exposes its public image through the D3 route
+    const byId = new Map<string, string | null>(
+      products.body.items.map((p: { id: string; imageUrl: string | null }) => [p.id, p.imageUrl]),
+    );
+    expect(byId.get(PROD_A_PUB)).toBe(
+      `/t/pub2-alpha/products/${PROD_A_PUB}/media/${seedId(7050)}/image`,
+    );
+    expect(byId.get(PROD_A_PUB2)).toBe(
+      `/t/pub2-alpha/products/${PROD_A_PUB2}/media/${seedId(7051)}/image`,
+    );
     expectSafeShape(products.body);
 
     const search = await http().get('/t/pub2-alpha/products?q=alpha two').expect(200);
@@ -155,6 +165,10 @@ describe('public catalog endpoints over HTTP (Step 4, STM-04/07/21)', () => {
     const detail = await http().get(`/t/pub2-alpha/products/${PROD_A_PUB}`).expect(200);
     expect(detail.body.name).toBe('Alpha One');
     expect(detail.body.status).toBeUndefined();
+    expect(detail.body.imageUrl).toBe(
+      `/t/pub2-alpha/products/${PROD_A_PUB}/media/${seedId(7050)}/image`,
+    );
+    expect(detail.body.imageMediaId).toBeUndefined();
     expectSafeShape(detail.body);
   });
 

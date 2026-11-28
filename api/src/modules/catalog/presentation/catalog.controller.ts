@@ -11,8 +11,10 @@ import {
   Req,
   UnauthorizedException,
   UseFilters,
+  UseInterceptors,
 } from '@nestjs/common';
 import { toSafeError } from '../../../common/errors/safe-error';
+import { PrivateNoStoreInterceptor } from '../../../common/http/private-no-store.interceptor';
 import { RequestSecurity } from '../../../common/auth/request-security';
 import { Roles } from '../../../common/auth/roles.decorator';
 import { CatalogService, MerchantScope, MutationResult } from '../application/catalog-service';
@@ -33,11 +35,13 @@ import {
  * membership. tenant_id is never accepted from body, query or headers.
  *
  * Idempotency (10.7): the creating POSTs and publish operations accept an optional
- * Idempotency-Key header; a replay returns the stored first result.
+ * Idempotency-Key header; a replay returns the stored first result. Every response is
+ * authorization-dependent draft/private data: Cache-Control private, no-store (M-8).
  */
 @Controller('t/:tenantCode/merchant')
 @Roles('MERCHANT')
 @UseFilters(CatalogErrorFilter)
+@UseInterceptors(PrivateNoStoreInterceptor)
 export class CatalogController {
   constructor(private readonly catalog: CatalogService) {}
 

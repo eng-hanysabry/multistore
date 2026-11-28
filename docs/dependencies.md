@@ -15,7 +15,8 @@
 | supertest, @types/supertest (dev) | HTTP tests for the health endpoints and headers | listed |
 | argon2 (IP-4) | Argon2id hashing of passwords and verification/reset codes (spec 9, 13). Native binary; prebuilt linux-x64 included. | **Approved by you for IP-4, 26 Nov 2026 (Telegram 21341113)**; listed in spec 13 |
 | @nestjs/jwt (IP-4) | access and refresh token signing and verification (spec 9, 13). Brings `jsonwebtoken` and small helper packages transitively. | **Approved by you for IP-4, 26 Nov 2026 (Telegram 21341113)**; listed in spec 13 |
-Not added, by your decision: passport, @nestjs/passport, passport-jwt, @nestjs/throttler. Not yet added (later phases): sharp, husky.
+| sharp (**0.35.5**, IP-5 Step 6) | image decoding, resize and WebP re-encode for product images (spec 7, J10/J11). Native binary (libvips), pinned exact, prebuilt `@img/sharp-linux-x64` for the Vercel-equivalent Linux x64 runtime; Node >= 20.9 required, repo runs Node 24. License: Apache-2.0. Smoke-tested on Linux x64 (Node 24.22.3): loads, decodes PNG/JPEG/WebP, emits WebP, thumb 256 px and display 1024 px variants verified. | **Approved by you for Step 6 only, 27 Nov 2026 (Batch 3 authorization, section 6)**; listed in spec 13 |
+Not added, by your decision: passport, @nestjs/passport, passport-jwt, @nestjs/throttler. Not yet added (later phases): husky.
 
 **Runtime:** Node 24 (`.nvmrc`, `engines`). Nest 12 ships ESM only. Jest runs with `--experimental-vm-modules`, which needs Node 24; Render uses `NODE_VERSION=24`. This is not in spec 13.
 ## App (`app/pubspec.yaml`)

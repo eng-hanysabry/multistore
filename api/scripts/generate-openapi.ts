@@ -12,18 +12,29 @@ import { CatalogService } from '../src/modules/catalog/application/catalog-servi
 import { CatalogController } from '../src/modules/catalog/presentation/catalog.controller';
 import { PublicCatalogService } from '../src/modules/catalog/application/public-catalog-service';
 import { PublicCatalogController } from '../src/modules/catalog/presentation/public-catalog.controller';
+import { MediaService } from '../src/modules/media/application/media-service';
+import { MediaController } from '../src/modules/media/presentation/media.controller';
+import { MediaImageController } from '../src/modules/media/presentation/media-image.controller';
 
 /**
  * The contract is built from controllers only, with stub providers, so it needs no database, no
  * environment and no network. Every new controller is added to this list.
  */
 @Module({
-  controllers: [HealthController, AuthController, CatalogController, PublicCatalogController],
+  controllers: [
+    HealthController,
+    AuthController,
+    CatalogController,
+    PublicCatalogController,
+    MediaController,
+    MediaImageController,
+  ],
   providers: [
     { provide: HealthService, useValue: {} },
     { provide: AuthService, useValue: {} },
     { provide: CatalogService, useValue: {} },
     { provide: PublicCatalogService, useValue: {} },
+    { provide: MediaService, useValue: {} },
   ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class -- Nest module marker
